@@ -1,0 +1,4 @@
+# aws cloudformation create-stack --stack-name infra-backend --template-body file://template.cfn.yaml
+Resources:
+  InfraBackendBucket:
+    Type: AWS::S3::Bucket
