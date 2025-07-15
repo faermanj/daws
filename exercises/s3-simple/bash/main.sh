@@ -52,8 +52,8 @@ echo "Public URL: $PUBLIC_URL"
 # Outbound Network: 0.0005903244 GB * $0.09 = $0.0000531
 # Total cost: $0.0000004 + $0.0000531 = $0.0000535
 
-# How to protect the bucket?
-There are several ways to protect the bucket. We'll learn more about that as we progress, but here are some references:
-* Use AWS Shield: https://aws.amazon.com/shield/
-* Use temporary, signed URLs: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-urls.html
-* Use Amazon Cognito: https://aws.amazon.com/cognito/
+# 3. How to protect the bucket?
+# There are several ways to protect the bucket. We'll learn more about that as we progress, but here are some references:
+# * Use AWS Shield: https://aws.amazon.com/shield/
+# * Use temporary, signed URLs: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-urls.html
+# * Use Amazon Cognito: https://aws.amazon.com/cognito/
