@@ -1,0 +1,7 @@
+# When to create a new module / stack?
+
+- Lifecycle (per-accout, per-deployment, per-*)...
+- Dependencies (networking <- cluster <- service)
+- Blast radius (database)
+- Performance 
+- Tenancy (Multi vs Single-tenancy)
