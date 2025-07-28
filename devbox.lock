@@ -117,6 +117,135 @@
       "last_modified": "2025-06-20T02:24:11Z",
       "resolved": "github:NixOS/nixpkgs/076e8c6678d8c54204abcb4b1b14c366835a58bb?lastModified=1750386251&narHash=sha256-1ovgdmuDYVo5OUC5NzdF%2BV4zx2uT8RtsgZahxidBTyw%3D"
     },
+    "nodePackages.aws-cdk@latest": {
+      "last_modified": "2025-07-13T22:45:35Z",
+      "resolved": "github:NixOS/nixpkgs/a421ac6595024edcfbb1ef950a3712b89161c359#nodePackages.aws-cdk",
+      "source": "devbox-search",
+      "version": "2.1004.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2l8937qyjcmxkzpywvzqn90cmrqrj1rr-aws-cdk-2.1004.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2l8937qyjcmxkzpywvzqn90cmrqrj1rr-aws-cdk-2.1004.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/d2yh3v0immk1dy2sha6y5haq02navm9z-aws-cdk-2.1004.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/d2yh3v0immk1dy2sha6y5haq02navm9z-aws-cdk-2.1004.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3gfmk6fpwsxpragwbdlvm9brg3wnlsib-aws-cdk-2.1004.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/3gfmk6fpwsxpragwbdlvm9brg3wnlsib-aws-cdk-2.1004.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9zz1z07b2r7ssyj48797pqx262kxgrl1-aws-cdk-2.1004.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/9zz1z07b2r7ssyj48797pqx262kxgrl1-aws-cdk-2.1004.0"
+        }
+      }
+    },
+    "nodejs@latest": {
+      "last_modified": "2025-07-24T23:24:55Z",
+      "plugin_version": "0.0.2",
+      "resolved": "github:NixOS/nixpkgs/0d00f23f023b7215b3f1035adb5247c8ec180dbc#nodejs_24",
+      "source": "devbox-search",
+      "version": "24.4.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/1c4jixl4s8kyc9ypy6fbwrbwwvaxldi8-nodejs-24.4.1",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/liix5qs67nyqidmi00zazw12ksc0pxxq-nodejs-24.4.1-dev"
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/fm4q7qypbnb8iyf9qm7i07vzybhp6b53-nodejs-24.4.1-libv8"
+            }
+          ],
+          "store_path": "/nix/store/1c4jixl4s8kyc9ypy6fbwrbwwvaxldi8-nodejs-24.4.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/k24g5rcnx42s4lwmgr9fh898xsc45668-nodejs-24.4.1",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/jiz68w6405makvg4iibnhx5hhq95hbpg-nodejs-24.4.1-dev"
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/yz7jfa49dq3y5hk7w4fzgxbbxn5r4c7b-nodejs-24.4.1-libv8"
+            }
+          ],
+          "store_path": "/nix/store/k24g5rcnx42s4lwmgr9fh898xsc45668-nodejs-24.4.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wccpr20l2n1fmnyard3y33kkzi9iadb3-nodejs-24.4.1",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/cpw2f6acji9nl40wsdcxy7vqb1895i4p-nodejs-24.4.1-dev"
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/b8q5m7qggq3dydfksmxnrqyx70qrf44w-nodejs-24.4.1-libv8"
+            }
+          ],
+          "store_path": "/nix/store/wccpr20l2n1fmnyard3y33kkzi9iadb3-nodejs-24.4.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2bg4yn1ccasnw6cscqhgqwzfw8j2xq1m-nodejs-24.4.1",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/rla4nj6lpf3dz3fxqbgqzvlm3bwd0545-nodejs-24.4.1-libv8"
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/7865hgg0qmbyambm53765ddy96qsg1vs-nodejs-24.4.1-dev"
+            }
+          ],
+          "store_path": "/nix/store/2bg4yn1ccasnw6cscqhgqwzfw8j2xq1m-nodejs-24.4.1"
+        }
+      }
+    },
     "python313Packages.cfn-lint@latest": {
       "last_modified": "2025-06-20T02:24:11Z",
       "resolved": "github:NixOS/nixpkgs/076e8c6678d8c54204abcb4b1b14c366835a58bb#python313Packages.cfn-lint",

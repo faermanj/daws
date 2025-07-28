@@ -3,7 +3,9 @@
   "packages": [
     "awscli2@latest",
     "direnv@latest",
-    "python313Packages.cfn-lint@latest"
+    "python313Packages.cfn-lint@latest",
+    "nodejs@latest",
+    "nodePackages.aws-cdk@latest"
   ],
   "shell": {
     "init_hook": [
