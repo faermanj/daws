@@ -1,6 +1,4 @@
-# aws cloudformation deploy --stack-name ghost-rds --capabilities CAPABILITY_NAMED_IAM --template-file solutions/ghost/ghost.cform.yaml
-
-AWSTemplateFormatVersion: 2010-09-09
+# aws cloudformation deploy --stack-name ghost --capabilities CAPABILITY_NAMED_IAM --template-file solutions/ghost/ghost.cform.yaml  --parameter-overrides DBPassword=Masterkey123
 Description: Ghost blog on EC2 + RDS
 Parameters:
   EnvId:

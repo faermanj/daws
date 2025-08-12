@@ -1,5 +1,4 @@
 # aws cloudformation deploy --stack-name ghost-vpc --template-file solutions/ghost/vpc.cform.yaml
-AWSTemplateFormatVersion: 2010-09-09
 Description: VPC with 3 public subnets and 3 isolated private subnets.
 
 Parameters:

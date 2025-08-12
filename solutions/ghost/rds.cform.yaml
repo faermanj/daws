@@ -1,6 +1,4 @@
 # aws cloudformation deploy --stack-name ghost-rds --template-file solutions/ghost/rds.cform.yaml --parameter-overrides DBPassword=Masterkey123
-
-AWSTemplateFormatVersion: '2010-09-09'
 Description: Simple Aurora MySQL
 
 Parameters:
