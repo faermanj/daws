@@ -1,7 +1,15 @@
-# aws cloudformation deploy --stack-name simple-ec2-python --template-file template.cfn.yaml
+# aws cloudformation deploy --stack-name ec2-xstack --template-file cloudformation/vpc-ec2-cross-stack/ec2.cform.yaml
 Description: Simple EC2 instance running Python http.server, serving files from a GitHub repo (downloaded as zip)
 
 Parameters:
+  EnvId:
+    Type: String
+    Default: project
+  
+  InstanceType:
+    Type: String
+    Default: t3.small
+
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access
     Type: AWS::EC2::KeyPair::KeyName
@@ -21,8 +29,10 @@ Resources:
   WebServerInstance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t3.micro
+      InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
+      SubnetId: 
+        Fn::ImportValue: !Sub '${EnvId}-PublicSubnet1Id'
       ImageId:
         Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}"
       SecurityGroupIds:
@@ -43,6 +53,8 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTP and SSH access
+      VpcId:
+        Fn::ImportValue: !Sub '${EnvId}-VpcId'
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -54,9 +66,14 @@ Resources:
           CidrIp: 0.0.0.0/0
 
 Outputs:
+  InstanceId:
+    Description: Instance ID of the EC2 instance
+    Value: !Ref WebServerInstance
+
   InstancePublicIP:
     Description: Public IP of the EC2 instance
     Value: !GetAtt WebServerInstance.PublicIp
+
   WebURL:
     Description: URL to access the web server
     Value: !Sub "http://${WebServerInstance.PublicDnsName}/"

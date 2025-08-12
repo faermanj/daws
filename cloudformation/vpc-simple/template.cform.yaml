@@ -1,0 +1,206 @@
+# aws cloudformation deploy --stack-name vpc-simple --template-file template.cform.yaml
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC with 3 public subnets and 3 isolated private subnets.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: project
+    Description: Name prefix for resource tagging.
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+  PublicSubnet1Cidr:
+    Type: String
+    Default: 10.0.1.0/24
+  PublicSubnet2Cidr:
+    Type: String
+    Default: 10.0.3.0/24
+  PublicSubnet3Cidr:
+    Type: String
+    Default: 10.0.5.0/24
+  PrivateSubnet1Cidr:
+    Type: String
+    Default: 10.0.2.0/24
+  PrivateSubnet2Cidr:
+    Type: String
+    Default: 10.0.4.0/24
+  PrivateSubnet3Cidr:
+    Type: String
+    Default: 10.0.6.0/24
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-igw
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-rt
+
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rt
+        - Key: Isolation
+          Value: isolated
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet1Cidr
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-a
+        - Key: Tier
+          Value: public
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet2Cidr
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-b
+        - Key: Tier
+          Value: public
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet3Cidr
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-c
+        - Key: Tier
+          Value: public
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet1Cidr
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-a
+        - Key: Tier
+          Value: private
+        - Key: Isolation
+          Value: isolated
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet2Cidr
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-b
+        - Key: Tier
+          Value: private
+        - Key: Isolation
+          Value: isolated
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet3Cidr
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-c
+        - Key: Tier
+          Value: private
+        - Key: Isolation
+          Value: isolated
+
+  AssocPublicSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+  AssocPublicSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+  AssocPublicSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicRouteTable
+
+  AssocPrivateSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+  AssocPrivateSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+  AssocPrivateSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet3
+      RouteTableId: !Ref PrivateRouteTable
+
+Outputs:
+  VpcId:
+    Value: !Ref VPC
+  PublicSubnetIds:
+    Value: !Join [",", [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
+  PrivateSubnetIds:
+    Value: !Join [",", [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3]]
+
+  

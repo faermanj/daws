@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Root stack that nests VPC and EC2 stacks.
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment name tag/prefix.
+Resources:
+  VpcStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/infra-backend-infrabackendbucket-t3yuymzt0gub/c041fc326c912877d0c3b62674b318f0.template
+      Parameters:
+        EnvId:
+          Ref: EnvId
+  Ec2Stack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VpcStack
+    Properties:
+      TemplateURL: https://s3.us-east-1.amazonaws.com/infra-backend-infrabackendbucket-t3yuymzt0gub/d61456fa5e1e564b2e8903d5c56b972c.template
+      Parameters:
+        EnvId:
+          Ref: EnvId
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value:
+      Fn::GetAtt:
+      - VpcStack
+      - Outputs.VpcId
+  InstanceId:
+    Description: EC2 Instance ID
+    Value:
+      Fn::GetAtt:
+      - Ec2Stack
+      - Outputs.InstanceId

@@ -1,0 +1,5 @@
+# aws cloudformation create-stack --stack-name infra-backend --template-body file://template.cform.yaml
+# aws cloudformation deploy --stack-name infra-backend --template-file template.cform.yaml
+Resources:
+  InfraBackendBucket:
+    Type: AWS::S3::Bucket

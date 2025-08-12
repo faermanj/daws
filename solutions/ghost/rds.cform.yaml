@@ -1,0 +1,132 @@
+# aws cloudformation deploy --stack-name ghost-rds --template-file solutions/ghost/rds.cform.yaml --parameter-overrides DBPassword=Masterkey123
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Simple Aurora MySQL
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: ghost
+    Description: Tag value for Application
+
+  DBUsername:
+    Type: String
+    Default: admin
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: '^[a-zA-Z][a-zA-Z0-9_]*$'
+    Description: Master username (starts with a letter; alphanumeric/underscore)
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    MaxLength: 41
+    Description: Master user password
+
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.medium
+    Description: Instance class
+
+  AllowedCidr:
+    Type: String
+    Default: "0.0.0.0/0"
+    Description: Optional CIDR (e.g., 203.0.113.0/24) allowed to access MySQL (3306). Leave empty to disable inbound.
+  
+  PubliclyAccessible:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Whether the DB instance should have a public IP
+  
+
+Resources:
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Aurora MySQL access
+      VpcId:
+        Fn::ImportValue: !Sub '${EnvId}-VpcId'
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+  DbSgIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DbSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      CidrIp: !Ref AllowedCidr
+
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for Aurora MySQL
+      SubnetIds:
+        - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet1Id"
+        - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet2Id"
+        - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet3Id"
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+  DbCluster:
+    Type: AWS::RDS::DBCluster
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      Engine: aurora-mysql
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VpcSecurityGroupIds: [!Ref DbSecurityGroup]
+      Port: 3306
+      BackupRetentionPeriod: 1
+      StorageEncrypted: true
+      DeletionProtection: false
+      CopyTagsToSnapshot: true
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+  DbInstanceWriter:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DbCluster
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: aurora-mysql
+      PubliclyAccessible: !Ref PubliclyAccessible
+      PromotionTier: 1
+      AutoMinorVersionUpgrade: true
+      Tags:
+        - Key: Role
+          Value: writer
+        - Key: EnvId
+          Value: !Ref EnvId
+
+Outputs:
+  ClusterArn:
+    Description: Cluster ARN
+    Value: !Ref DbCluster
+  
+  WriterEndpoint:
+    Description: Writer endpoint address
+    Value: !GetAtt [DbCluster, Endpoint.Address]
+  
+  ReaderEndpoint:
+    Description: Reader endpoint address
+    Value: !GetAtt [DbCluster, ReadEndpoint.Address]
+  
+  SecurityGroupId:
+    Description: DB security group ID
+    Value: !Ref DbSecurityGroup
+  
+  DBInstanceId:
+    Description: Writer DB instance identifier
+    Value: !Ref DbInstanceWriter

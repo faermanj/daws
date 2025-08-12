@@ -1,0 +1,199 @@
+# aws cloudformation deploy --stack-name ghost-rds --capabilities CAPABILITY_NAMED_IAM --template-file solutions/ghost/ghost.cform.yaml
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Ghost blog on EC2 + RDS
+Parameters:
+  EnvId:
+    Type: String
+    Default: ghost
+    Description: Must match the exporting VPC/RDS stack EnvId for ImportValue lookups.
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: default
+    Description: Existing EC2 KeyPair for SSH access.
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedPattern: '^[a-z0-9.]+$'
+    Description: EC2 instance type for Ghost host.
+
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+    Description: SSM param for latest Amazon Linux 2023 AMI.
+
+  SSHCidr:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: CIDR block allowed to SSH (22). Restrict in production.
+
+  DBUsername:
+    Type: String
+    Default: ghost
+    Description: Database username for Ghost.
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    Description: Database password for Ghost.
+
+  DBName:
+    Type: String
+    Default: ghost_prod
+    Description: Database name for Ghost (must exist or have privileges to create).
+
+  GhostImage:
+    Type: String
+    Default: ghost:5
+    Description: Docker image for Ghost. Use a v4 tag if your DB is MySQL 5.7.
+
+  SiteUrl:
+    Type: String
+    Default: ""
+    Description: Optional public URL (e.g., https://blog.example.com). If empty, will use instance public hostname.
+
+  RootVolumeSizeGiB:
+    Type: Number
+    Default: 20
+    MinValue: 8
+    Description: Root EBS volume size in GiB.
+
+Mappings: {}
+
+Resources:
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-ghost-role
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref InstanceRole]
+      InstanceProfileName: !Sub ${EnvId}-ghost-ip
+
+  GhostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Ghost EC2 security group
+      VpcId:
+        Fn::ImportValue: !Sub '${EnvId}-VpcId'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHCidr
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-ghost-sg
+
+  GhostInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile: !Ref InstanceProfile
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId:
+        Fn::ImportValue: !Sub '${EnvId}-PublicSubnet1Id'
+      SecurityGroupIds:
+        - !Ref GhostSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: !Ref RootVolumeSizeGiB
+            VolumeType: gp3
+            Encrypted: true
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-ghost
+        - Key: Stack
+          Value: !Ref AWS::StackName
+      UserData:
+        Fn::Base64:
+          Fn::Sub:
+            - |
+              #!/bin/bash
+              set -euxo pipefail
+
+              # Update and install Docker
+              dnf update -y
+              dnf install -y docker
+              systemctl enable --now docker
+
+              # Optional: allow ec2-user to use docker (new session needed, we run as root here)
+              usermod -aG docker ec2-user || true
+
+              # Derive SITE_URL if not provided
+              SITE_URL='${SiteUrl}'
+              if [ -z "$SITE_URL" ]; then
+                TOKEN=$(curl -sX PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+                PUBLIC_FQDN=$(curl -sH "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-hostname)
+                SITE_URL="http://$PUBLIC_FQDN"
+              fi
+
+              DB_HOST='${DbHost}'
+              DB_USER='${DBUsername}'
+              DB_PASS='${DBPassword}'
+              DB_NAME='${DBName}'
+
+              # Run Ghost container on port 80 -> 2368
+              docker rm -f ghost || true
+              docker run -d --name ghost --restart unless-stopped \
+                -p 80:2368 \
+                -e url="$SITE_URL" \
+                -e database__client=mysql \
+                -e database__connection__host="$DB_HOST" \
+                -e database__connection__user="$DB_USER" \
+                -e database__connection__password="$DB_PASS" \
+                -e database__connection__database="$DB_NAME" \
+                ${GhostImage}
+
+              echo "Ghost started. URL=$SITE_URL DB_HOST=$DB_HOST"
+            - {
+                DbHost: { "Fn::ImportValue": { "Fn::Sub": "${EnvId}-WriterEndpoint" } },
+                DBUsername: !Ref DBUsername,
+                DBPassword: !Ref DBPassword,
+                DBName: !Ref DBName,
+                GhostImage: !Ref GhostImage,
+                SiteUrl: !Ref SiteUrl
+              }
+
+Outputs:
+  InstanceId:
+    Value: !Ref GhostInstance
+    Export:
+      Name: !Sub ${EnvId}-GhostInstanceId
+
+  PublicIp:
+    Value: !GetAtt GhostInstance.PublicIp
+
+  PublicDnsName:
+    Value: !GetAtt GhostInstance.PublicDnsName
+
+  SecurityGroupId:
+    Value: !Ref GhostSecurityGroup
+    Export:
+      Name: !Sub ${EnvId}-GhostSecurityGroupId

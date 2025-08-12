@@ -1,0 +1,62 @@
+# aws cloudformation deploy --stack-name simple-ec2-python --template-file template.cform.yaml
+Description: Simple EC2 instance running Python http.server, serving files from a GitHub repo (downloaded as zip)
+
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: "default"
+
+  GitHubUser:
+    Description: GitHub username owning the repo
+    Type: String
+    Default: "faermanj"
+
+  GitHubRepo:
+    Description: GitHub repository name
+    Type: String
+    Default: "daws"
+
+Resources:
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      KeyName: !Ref KeyName
+      ImageId:
+        Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}"
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y unzip python3 wget
+          cd /home/ec2-user
+          wget https://github.com/${GitHubUser}/${GitHubRepo}/archive/refs/heads/main.zip -O repo.zip
+          unzip repo.zip
+          cd ${GitHubRepo}-main/html/simple-html/
+          nohup python3 -m http.server 80 --bind 0.0.0.0 &
+          chown -R ec2-user:ec2-user /home/ec2-user/${GitHubRepo}-main
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP and SSH access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  InstancePublicIP:
+    Description: Public IP of the EC2 instance
+    Value: !GetAtt WebServerInstance.PublicIp
+  WebURL:
+    Description: URL to access the web server
+    Value: !Sub "http://${WebServerInstance.PublicDnsName}/"

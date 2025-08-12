@@ -1,0 +1,37 @@
+# aws cloudformation package --template-file cloudformation/vpc-ec2-cross-stack/template.cform.yaml --s3-bucket $BUCKET_NAME --output-template-file cloudformation/vpc-ec2-cross-stack/package.cform.yaml
+# aws cloudformation deploy --stack-name nested-stack --template-file cloudformation/vpc-ec2-cross-stack/package.cform.yaml
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Root stack that nests VPC and EC2 stacks.
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment name tag/prefix.
+
+Resources:
+  VpcStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./vpc.cform.yaml
+      Parameters:
+        EnvId: !Ref EnvId
+
+  Ec2Stack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VpcStack
+    Properties:
+      TemplateURL: ./ec2.cform.yaml
+      Parameters:
+        EnvId: !Ref EnvId
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !GetAtt VpcStack.Outputs.VpcId
+    
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !GetAtt Ec2Stack.Outputs.InstanceId
+  
