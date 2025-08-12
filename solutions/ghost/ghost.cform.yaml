@@ -171,7 +171,7 @@ Resources:
 
               echo "Ghost started. URL=$SITE_URL DB_HOST=$DB_HOST"
             - {
-                DbHost: { "Fn::ImportValue": { "Fn::Sub": "${EnvId}-WriterEndpoint" } },
+                DbHost: { "Fn::ImportValue": { "Fn::Sub": "${EnvId}-DBWriterEndpoint" } },
                 DBUsername: !Ref DBUsername,
                 DBPassword: !Ref DBPassword,
                 DBName: !Ref DBName,

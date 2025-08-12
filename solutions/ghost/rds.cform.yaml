@@ -108,23 +108,60 @@ Resources:
         - Key: EnvId
           Value: !Ref EnvId
 
-Outputs:
+ClusterArn:
+  Description: Cluster ARN
+  Value: !Ref DbCluster
+  Export:
+    Name: !Sub '${EnvId}-ClusterArn'
+
+WriterEndpoint:
+  Description: Writer endpoint address
+  Value: !GetAtt [DbCluster, Endpoint.Address]
+  Export:
+    Name: !Sub '${EnvId}-WriterEndpoint'
+
+ReaderEndpoint:
+  Description: Reader endpoint address
+  Value: !GetAtt [DbCluster, ReadEndpoint.Address]
+  Export:
+    Name: !Sub '${EnvId}-ReaderEndpoint'
+
+SecurityGroupId:
+  Description: DB security group ID
+  Value: !Ref DbSecurityGroup
+  Export:
+    Name: !Sub '${EnvId}-SecurityGroupId'
+
+DBInstanceId:
+  Description: Writer DB instance identifier
+  Value: !Ref DbInstanceWriter
+  Export:
+    Name: !Sub '${EnvId}-DBInstanceId'
+  
   ClusterArn:
     Description: Cluster ARN
     Value: !Ref DbCluster
+    Export:
+      Name: !Sub '${EnvId}-DBClusterArn'
   
   WriterEndpoint:
     Description: Writer endpoint address
     Value: !GetAtt [DbCluster, Endpoint.Address]
+    Export:
+      Name: !Sub '${EnvId}-DBWriterEndpoint'
   
   ReaderEndpoint:
     Description: Reader endpoint address
     Value: !GetAtt [DbCluster, ReadEndpoint.Address]
-  
+    Export:
+      Name: !Sub '${EnvId}-DBReaderEndpoint'
+
   SecurityGroupId:
     Description: DB security group ID
     Value: !Ref DbSecurityGroup
-  
+    Export:
+      Name: !Sub '${EnvId}-DBSecurityGroupId'
+
   DBInstanceId:
     Description: Writer DB instance identifier
     Value: !Ref DbInstanceWriter
