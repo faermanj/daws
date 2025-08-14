@@ -1,0 +1,96 @@
+# aws cloudformation deploy --stack-name simple-vpc --template-file solutions/vpc-simple/vpc.cform.yaml
+# aws cloudformation delete-stack --stack-name simple-vpc
+Description: VPC with single public subnet.
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnet0Cidr:
+    Type: String
+    Default: 10.0.0.0/24
+
+Resources:
+  SimpleVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-simple-vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-simple-igw
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref SimpleVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref SimpleVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-public-rt
+
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet0:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref SimpleVPC
+      CidrBlock: !Ref PublicSubnet0Cidr
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-public-0
+        - Key: Tier
+          Value: public
+
+  AssocPublicSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet0
+      RouteTableId: !Ref PublicRouteTable
+
+Outputs:
+  VpcId:
+    Value: !Ref SimpleVPC
+    Export:
+      Name: !Sub ${EnvId}-SimpleVpcId
+
+  InternetGatewayId:
+    Value: !Ref InternetGateway
+    Export:
+      Name: !Sub ${EnvId}-SimpleInternetGatewayId
+
+  PublicRouteTableId:
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: !Sub ${EnvId}-SimplePublicRouteTableId
+
+  PublicSubnet1Id:
+    Value: !Ref PublicSubnet0
+    Export:
+      Name: !Sub ${EnvId}-PublicSubnet0Id

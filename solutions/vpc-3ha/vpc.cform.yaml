@@ -1,10 +1,11 @@
-# aws cloudformation deploy --stack-name ghost-vpc --template-file solutions/ghost/vpc.cform.yaml
+# aws cloudformation deploy --stack-name vpc-3ha --template-file solutions/vpc-3ha/vpc.cform.yaml
+# aws cloudformation delete --stack-name vpc-3ha
 Description: VPC with 3 public subnets and 3 isolated private subnets.
 
 Parameters:
   EnvId:
     Type: String
-    Default: ghost
+    Default: project
 
   VpcCidr:
     Type: String

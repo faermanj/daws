@@ -1,10 +1,11 @@
-# aws cloudformation deploy --stack-name ghost-rds --template-file solutions/ghost/rds.cform.yaml --parameter-overrides DBPassword=Masterkey123
+# aws cloudformation deploy --stack-name rds-aurora-mysql --template-file solutions/rds-aurora-mysql/rds.cform.yaml --parameter-overrides DBPassword=Masterkey123
+# aws cloudformation destroy --stack-name rds-aurora-mysql
 Description: Simple Aurora MySQL
 
 Parameters:
   EnvId:
     Type: String
-    Default: ghost
+    Default: project
     Description: Tag value for Application
 
   DBUsername:
@@ -12,7 +13,7 @@ Parameters:
     Default: admin
     MinLength: 1
     MaxLength: 16
-    AllowedPattern: '^[a-zA-Z][a-zA-Z0-9_]*$'
+    AllowedPattern: "^[a-zA-Z][a-zA-Z0-9_]*$"
     Description: Master username (starts with a letter; alphanumeric/underscore)
 
   DBPassword:
@@ -31,13 +32,12 @@ Parameters:
     Type: String
     Default: "0.0.0.0/0"
     Description: Optional CIDR (e.g., 203.0.113.0/24) allowed to access MySQL (3306). Leave empty to disable inbound.
-  
+
   PubliclyAccessible:
     Type: String
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: Whether the DB instance should have a public IP
-  
 
 Resources:
   DbSecurityGroup:
@@ -45,7 +45,7 @@ Resources:
     Properties:
       GroupDescription: Aurora MySQL access
       VpcId:
-        Fn::ImportValue: !Sub '${EnvId}-VpcId'
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
@@ -107,61 +107,33 @@ Resources:
           Value: writer
         - Key: EnvId
           Value: !Ref EnvId
-
-ClusterArn:
-  Description: Cluster ARN
-  Value: !Ref DbCluster
-  Export:
-    Name: !Sub '${EnvId}-ClusterArn'
-
-WriterEndpoint:
-  Description: Writer endpoint address
-  Value: !GetAtt [DbCluster, Endpoint.Address]
-  Export:
-    Name: !Sub '${EnvId}-WriterEndpoint'
-
-ReaderEndpoint:
-  Description: Reader endpoint address
-  Value: !GetAtt [DbCluster, ReadEndpoint.Address]
-  Export:
-    Name: !Sub '${EnvId}-ReaderEndpoint'
-
-SecurityGroupId:
-  Description: DB security group ID
-  Value: !Ref DbSecurityGroup
-  Export:
-    Name: !Sub '${EnvId}-SecurityGroupId'
-
-DBInstanceId:
-  Description: Writer DB instance identifier
-  Value: !Ref DbInstanceWriter
-  Export:
-    Name: !Sub '${EnvId}-DBInstanceId'
-  
-  ClusterArn:
+Outputs:
+  DBClusterArn:
     Description: Cluster ARN
     Value: !Ref DbCluster
     Export:
-      Name: !Sub '${EnvId}-DBClusterArn'
-  
-  WriterEndpoint:
+      Name: !Sub "${EnvId}-DBClusterArn"
+
+  DBWriterEndpoint:
     Description: Writer endpoint address
     Value: !GetAtt [DbCluster, Endpoint.Address]
     Export:
-      Name: !Sub '${EnvId}-DBWriterEndpoint'
-  
-  ReaderEndpoint:
+      Name: !Sub "${EnvId}-DBWriterEndpoint"
+
+  DBReaderEndpoint:
     Description: Reader endpoint address
     Value: !GetAtt [DbCluster, ReadEndpoint.Address]
     Export:
-      Name: !Sub '${EnvId}-DBReaderEndpoint'
+      Name: !Sub "${EnvId}-DBReaderEndpoint"
 
-  SecurityGroupId:
+  DBSecurityGroupId:
     Description: DB security group ID
     Value: !Ref DbSecurityGroup
     Export:
-      Name: !Sub '${EnvId}-DBSecurityGroupId'
+      Name: !Sub "${EnvId}-DBSecurityGroupId"
 
   DBInstanceId:
     Description: Writer DB instance identifier
     Value: !Ref DbInstanceWriter
+    Export:
+      Name: !Sub "${EnvId}-DBInstanceId"

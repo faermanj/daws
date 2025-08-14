@@ -1,9 +1,10 @@
 # aws cloudformation deploy --stack-name ghost --capabilities CAPABILITY_NAMED_IAM --template-file solutions/ghost/ghost.cform.yaml  --parameter-overrides DBPassword=Masterkey123
+# aws cloudformation delete-stack --stack-name ghost
 Description: Ghost blog on EC2 + RDS
 Parameters:
   EnvId:
     Type: String
-    Default: ghost
+    Default: project
     Description: Must match the exporting VPC/RDS stack EnvId for ImportValue lookups.
 
   KeyName:
@@ -29,7 +30,7 @@ Parameters:
 
   DBUsername:
     Type: String
-    Default: ghost
+    Default: admin
     Description: Database username for Ghost.
 
   DBPassword:

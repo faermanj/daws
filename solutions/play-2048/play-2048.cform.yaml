@@ -1,0 +1,68 @@
+# aws cloudformation deploy --stack-name play-2048 --template-file solutions/play-2048/play-2048.cform.yaml 
+# aws cloudformation delete-stack --stack-name play-2048
+Description: Play 2048 on EC2
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+  InstanceType:
+    Type: String
+    Default: t4g.small
+
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64
+
+Resources:
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: App EC2 security group
+      VpcId:
+        Fn::ImportValue: !Sub '${EnvId}-SimpleVpcId'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-App-sg
+
+  AppInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      SubnetId:
+        Fn::ImportValue: !Sub '${EnvId}-PublicSubnet0Id'
+      SecurityGroupIds:
+        - !Ref AppSecurityGroup
+      UserData:
+        Fn::Base64:
+          Fn::Sub:
+            - |
+              #!/bin/bash
+              set -ex
+
+              yum update -y
+              yum install -y git python3
+
+              git clone https://github.com/gabrielecirulli/2048.git /home/ec2-user/2048
+              chown -R ec2-user:ec2-user /home/ec2-user/2048
+
+              nohup python3 -m http.server 80 --directory /home/ec2-user/2048 &
+            - {
+              }
+
+Outputs:
+  PublicIp:
+    Value: !GetAtt AppInstance.PublicIp
+
+  PublicDnsName:
+    Value: !GetAtt AppInstance.PublicDnsName
+
