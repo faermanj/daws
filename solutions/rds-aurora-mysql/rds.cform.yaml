@@ -1,5 +1,5 @@
 # aws cloudformation deploy --stack-name rds-aurora-mysql --template-file solutions/rds-aurora-mysql/rds.cform.yaml --parameter-overrides DBPassword=Masterkey123
-# aws cloudformation destroy --stack-name rds-aurora-mysql
+# aws cloudformation delete-stack --stack-name rds-aurora-mysql
 Description: Simple Aurora MySQL
 
 Parameters:
