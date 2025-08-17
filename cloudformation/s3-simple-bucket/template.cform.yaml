@@ -1,5 +1,6 @@
-# aws cloudformation create-stack --stack-name infra-backend --template-body file://template.cform.yaml
-# aws cloudformation deploy --stack-name infra-backend --template-file template.cform.yaml
+# aws cloudformation create-stack --stack-name s3-simple-bucket --template-body file://template.cform.yaml
+# aws cloudformation deploy --stack-name s3-simple-bucket --template-file template.cform.yaml
+# aws cloudformation delete-stack --stack-name s3-simple-bucket
 Resources:
-  InfraBackendBucket:
+  SimpleBucket:
     Type: AWS::S3::Bucket
