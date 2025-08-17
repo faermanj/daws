@@ -1,4 +1,4 @@
-# aws cloudformation deploy --stack-name simple-vpc --template-file solutions/vpc-simple/vpc.cform.yaml
+# aws cloudformation deploy --stack-name simple-vpc --template-file cloudformation/vpc-simple/vpc.cform.yaml
 # aws cloudformation delete-stack --stack-name simple-vpc
 Description: VPC with single public subnet.
 
