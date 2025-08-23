@@ -3,7 +3,7 @@ set -ex
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 USER_DATA_FILE="$DIR/user-data.sh"
 
-export AWS_REGION=${AWS_REGION:-"us-east-1" }
+export AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 # Get latest Amazon Linux 2023 ARM64 AMI
 AMI_ID=$(aws ssm get-parameter \
@@ -32,23 +32,24 @@ if [ "$SG_ID" == "None" ] || [ -z "$SG_ID" ]; then
      --protocol tcp --port 80 --cidr 0.0.0.0/0
 fi
 
-
-
-# Launch the instance
-INSTANCE_ID=$(aws ec2 run-instances \
+aws ec2 run-instances \
+  --count 2 \
   --image-id "$AMI_ID" \
   --instance-type t4g.small \
   --subnet-id "$SUBNET_ID" \
   --security-group-ids "$SG_ID" \
   --associate-public-ip-address \
   --user-data "fileb://${USER_DATA_FILE}" \
-  --query "Instances[0].InstanceId" --output text)
+  > .run-instances.json
 
-# Wait for it and get the public IP
-aws ec2 wait instance-status-ok  --instance-ids "$INSTANCE_ID"
-PUBLIC_IP=$(aws ec2 describe-instances  \
-  --instance-ids "$INSTANCE_ID" \
-  --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
+INSTANCE_0_ID=$(jq -r .Instances[0].InstanceId .run-instances.json)
+INSTANCE_1_ID=$(jq -r .Instances[1].InstanceId .run-instances.json)
 
-echo "Instance: $INSTANCE_ID"
-echo "URL: http://$PUBLIC_IP/"
+aws ec2 wait instance-status-ok  --instance-ids "$INSTANCE_0_ID"
+aws ec2 wait instance-status-ok  --instance-ids "$INSTANCE_1_ID"
+
+INSTANCE_0_IP=$(aws ec2 describe-instances --instance-ids "$INSTANCE_0_ID" --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
+INSTANCE_1_IP=$(aws ec2 describe-instances --instance-ids "$INSTANCE_1_ID" --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
+
+curl http://$INSTANCE_0_IP
+curl http://$INSTANCE_1_IP

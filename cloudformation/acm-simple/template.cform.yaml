@@ -1,0 +1,33 @@
+# aws cloudformation deploy --stack-name acm-simple --parameter-overrides HostedZoneId=Z01386901AXGFXHXKIDJX DomainName=petoboto.com --template-file cloudformation/acm-simple/template.cform.yaml
+Description: ACM Certificate
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+  DomainName:
+    Type: String
+
+  HostedZoneId:
+    Type: String
+    Description: "The ID of the existing Route 53 Hosted Zone"
+
+Resources:
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+      SubjectAlternativeNames:
+        - !Sub "*.${DomainName}"
+
+Outputs:
+  CertificateArn:
+    Description: ARN of the ACM certificate
+    Value: !Ref Certificate
+    Export:
+      Name: !Sub "${EnvId}-AcmCertificateArn"

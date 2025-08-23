@@ -6,7 +6,8 @@
     "python313Packages.cfn-lint@latest",
     "nodejs@latest",
     "nodePackages.aws-cdk@latest",
-    "mysql-client@latest"
+    "mysql-client@latest",
+    "jq@latest"
   ],
   "shell": {
     "init_hook": [

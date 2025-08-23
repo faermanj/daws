@@ -1,0 +1,21 @@
+
+Description: Auto Scaling Group of EC2 instances behind an ALB
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+  GitHubUser:
+    Description: GitHub username owning the repo
+    Type: String
+    Default: "faermanj"
+
+  GitHubRepo:
+    Description: GitHub repository name
+    Type: String
+    Default: "daws"
+
+Resources:
+
+

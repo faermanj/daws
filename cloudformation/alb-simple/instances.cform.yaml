@@ -1,0 +1,115 @@
+
+Description: Pair of EC2 instances behind an ALB
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+  GitHubUser:
+    Description: GitHub username owning the repo
+    Type: String
+    Default: "faermanj"
+
+  GitHubRepo:
+    Description: GitHub repository name
+    Type: String
+    Default: "daws"
+
+Resources:
+  InstanceA:
+    Type: AWS::EC2::Instance
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Sub '${EnvId}-SimpleVpcId'
+      InstanceType: !Ref InstanceType
+      ImageId:
+        Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}"
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          yum install -y python3 iptables
+          TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+            -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+          INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+            http://169.254.169.254/latest/meta-data/instance-id)
+          cat <<EOF > /home/ec2-user/index.html
+          <html>
+          <head><title>EC2 Instance $INSTANCE_ID</title></head>
+          <body>
+          <h1>Hello from EC2!</h1>
+          <p>Instance ID: <b>$INSTANCE_ID</b></p>
+          </body>
+          </html>
+          EOF
+          cd /home/ec2-user
+          nohup python3 -m http.server 8080 --directory /home/ec2-user &
+          iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+
+  InstanceB:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId:
+        Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}"
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          yum install -y python3 iptables
+          TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+            -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+          INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+            http://169.254.169.254/latest/meta-data/instance-id)
+          cat <<EOF > /home/ec2-user/index.html
+          <html>
+          <head><title>EC2 Instance $INSTANCE_ID</title></head>
+          <body>
+          <h1>Hello from EC2!</h1>
+          <p>Instance ID: <b>$INSTANCE_ID</b></p>
+          </body>
+          </html>
+          EOF
+          cd /home/ec2-user
+          nohup python3 -m http.server 8080 --directory /home/ec2-user &
+          iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP on 8080 from SG
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId:
+            Fn::ImportValue: !Sub '${EnvId}-AlbSecurityGroupId'
+
+            AlbTargetGroup:
+              Type: AWS::ElasticLoadBalancingV2::TargetGroup
+              Properties:
+                VpcId:
+                  Fn::ImportValue: !Sub '${EnvId}-SimpleVpcId'
+                Protocol: HTTP
+                Port: 80
+                TargetType: instance
+                HealthCheckProtocol: HTTP
+                HealthCheckPort: traffic-port
+                HealthCheckPath: /
+                Matcher:
+                  HttpCode: '200'
+                Targets:
+                  - Id: !Ref InstanceA
+                  - Id: !Ref InstanceB
+Outputs:
+  InstancePublicIP:
+    Description: Public IP of the EC2 instance
+    Value: !GetAtt WebServerInstance.PublicIp
+  WebURL:
+    Description: URL to access the web server
+    Value: !Sub "http://${WebServerInstance.PublicDnsName}/"
