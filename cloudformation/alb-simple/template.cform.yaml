@@ -3,14 +3,15 @@
 # ZONE_ID="Z01386901AXGFXHXKIDJX"
 # aws cloudformation deploy --stack-name acm-simple --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/acm-simple/template.cform.yaml
 # aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/vpc.cform.yaml
-# aws cloudformation deploy --stack-name simple-alb  --template-file cloudformation/alb-simple/template.cform.yaml
-# DNS_NAME=$(aws cloudformation describe-stacks --stack-name simple-alb --query "Stacks[0].Outputs[?OutputKey=='ALBDNSName'].OutputValue" --output text)
-# curl -k https://$DNS_NAME
-# aws cloudformation deploy --stack-name simple-alb-alias --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/alb-simple/alias.cform.yaml
-# aws cloudformation deploy --stack-name simple-alb-instances  --template-file cloudformation/alb-simple/instances.cform.yaml
-# curl https://$ENV_ID.$DOMAIN_NAME
-# echo https://$ENV_ID.$DOMAIN_NAME
-
+# aws cloudformation deploy --stack-name alb-simple  --template-file cloudformation/alb-simple/template.cform.yaml
+# DNS_NAME=$(aws cloudformation describe-stacks --stack-name alb-simple --query "Stacks[0].Outputs[?OutputKey=='ALBDNSName'].OutputValue" --output text)
+# curl -k "https://$DNS_NAME" 
+# aws cloudformation deploy --stack-name alb-simple-alias --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/alb-simple/alias.cform.yaml
+# aws cloudformation deploy --stack-name alb-simple-instances  --template-file cloudformation/alb-simple/instances.cform.yaml
+# URL="https://$ENV_ID.$DOMAIN_NAME"
+# echo "$URL"
+# curl "$URL"
+# for i in {1..10}; do echo -n "$i: " ; curl -k "$URL"; done
 Description: Simple ALB
 
 Parameters:
@@ -23,7 +24,7 @@ Resources:
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow HTTPS to ALB
+      GroupDescription: ALB Security Group
       VpcId:
         Fn::ImportValue: !Sub "${EnvId}-VpcId"
       SecurityGroupIngress:

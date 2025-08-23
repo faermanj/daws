@@ -8,14 +8,14 @@ Parameters:
   InstanceType:
     Type: String
     Default: t4g.small
-    ConstraintDescription: must be a valid and available EC2 instance type.
+    ConstraintDescription: Must be a valid and available EC2 instance type.
 
 Resources:
   InstanceA:
     Type: AWS::EC2::Instance
     Properties:
       SubnetId:
-        Fn::ImportValue: !Sub '${EnvId}-PrivateSubnet1Id'
+        Fn::ImportValue: !Sub "${EnvId}-PrivateSubnet1Id"
       InstanceType: !Ref InstanceType
       ImageId:
         Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}"
@@ -25,29 +25,19 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           set -e
-          yum install -y python3 iptables
           TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
             -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
           INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
             http://169.254.169.254/latest/meta-data/instance-id)
-          cat <<EOF > /home/ec2-user/index.html
-          <html>
-          <head><title>EC2 Instance $INSTANCE_ID</title></head>
-          <body>
-          <h1>Hello from EC2!</h1>
-          <p>Instance ID: <b>$INSTANCE_ID</b></p>
-          </body>
-          </html>
-          EOF
-          cd /home/ec2-user
-          nohup python3 -m http.server 8080 --directory /home/ec2-user &
-          iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+          echo "Instance ID: $INSTANCE_ID" > /home/ec2-user/index.html
+          sudo -u ec2-user nohup python3 -m http.server 8080 --directory /home/ec2-user &
+          echo "user-data script finished"
 
   InstanceB:
     Type: AWS::EC2::Instance
     Properties:
       SubnetId:
-        Fn::ImportValue: !Sub '${EnvId}-PrivateSubnet2Id'
+        Fn::ImportValue: !Sub "${EnvId}-PrivateSubnet1Id"
       InstanceType: !Ref InstanceType
       ImageId:
         Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}"
@@ -57,36 +47,31 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           set -e
-          yum install -y python3 iptables
           TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
             -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
           INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" \
             http://169.254.169.254/latest/meta-data/instance-id)
-          cat <<EOF > /home/ec2-user/index.html
-          <html>
-          <head><title>EC2 Instance $INSTANCE_ID</title></head>
-          <body>
-          <h1>Hello from EC2!</h1>
-          <p>Instance ID: <b>$INSTANCE_ID</b></p>
-          </body>
-          </html>
-          EOF
-          cd /home/ec2-user
-          nohup python3 -m http.server 8080 --directory /home/ec2-user &
-          iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+          echo "Instance ID: $INSTANCE_ID" > /home/ec2-user/index.html
+          sudo -u ec2-user nohup python3 -m http.server 8080 --directory /home/ec2-user &
+          echo "user-data script finished"
 
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable HTTP on 8080 from SG
+      GroupDescription: App Instances 
       VpcId:
         Fn::ImportValue: !Sub "${EnvId}-VpcId"
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          FromPort: 8080
+          ToPort: 8080
           SourceSecurityGroupId:
             Fn::ImportValue: !Sub "${EnvId}-ALBSecurityGroupId"
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
 
   AlbTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -94,11 +79,15 @@ Resources:
       VpcId:
         Fn::ImportValue: !Sub "${EnvId}-VpcId"
       Protocol: HTTP
-      Port: 80
+      Port: 8080
       TargetType: instance
       HealthCheckProtocol: HTTP
       HealthCheckPort: traffic-port
       HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 15
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 3
       Matcher:
         HttpCode: "200"
       Targets:
