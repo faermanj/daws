@@ -98,3 +98,10 @@ Outputs:
     Value: !Ref ALBSecurityGroup
     Export:
       Name: !Sub "${EnvId}-ALBSecurityGroupId"
+  
+  HttpsListenerArn:
+    Description: ARN of the HTTPS Listener
+    Value: !Ref HttpsListener
+    Export:
+      Name: !Sub "${EnvId}-HttpsListenerArn"
+      

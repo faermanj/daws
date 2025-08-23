@@ -104,6 +104,21 @@ Resources:
       Targets:
         - Id: !Ref InstanceA
         - Id: !Ref InstanceB
+
+  InstancesRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn:
+        Fn::ImportValue: !Sub "${EnvId}-HttpsListenerArn"
+      Priority: 100
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /*
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref AlbTargetGroup
+
 Outputs:
   InstanceAId:
     Description: ID of Instance A
