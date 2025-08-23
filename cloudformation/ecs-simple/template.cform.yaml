@@ -7,11 +7,9 @@
 # aws cloudformation deploy --stack-name alb-simple-alias --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/alb-simple/alias.cform.yaml
 # aws cloudformation deploy --stack-name ecs-simple --capabilities CAPABILITY_NAMED_IAM --template-file cloudformation/ecs-simple/template.cform.yaml
 # aws cloudformation deploy --stack-name ecs-2048 --template-file cloudformation/ecs-simple/ecs-2048.cform.yaml
-
-# URL="https://$ENV_ID.$DOMAIN_NAME"
+# URL="https://$ENV_ID.$DOMAIN_NAME/2048"
 # echo "$URL"
-# curl "$URL"
-# for i in {1..10}; do echo -n "$i: " ; curl -k "$URL"; done
+
 Description: ECS Cluster
 
 Parameters:
@@ -20,10 +18,10 @@ Parameters:
     Default: project
 
 Resources:
-  EcsCluster:
+  ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Sub '${EnvId}-ecs'
+      ClusterName: !Sub '${EnvId}-ecs-cluster'
       CapacityProviders:
         - FARGATE
         - FARGATE_SPOT
@@ -67,11 +65,17 @@ Resources:
       RetentionInDays: 14
 
 Outputs:
-  EcsClusterArn:
-    Description: The ARN of the ECS Cluster
-    Value: !GetAtt EcsCluster.Arn
+  ECSClusterName:
+    Description: The name of the ECS Cluster
+    Value: !Ref ECSCluster
     Export:
-      Name: !Sub '${EnvId}-EcsClusterArn'
+      Name: !Sub '${EnvId}-ECSClusterName'
+
+  ECSClusterArn:
+    Description: The ARN of the ECS Cluster
+    Value: !GetAtt ECSCluster.Arn
+    Export:
+      Name: !Sub '${EnvId}-ECSClusterArn'
 
   ExecutionRoleArn:
     Description: The ARN of the ECS Task Execution Role
