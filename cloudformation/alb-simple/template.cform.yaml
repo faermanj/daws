@@ -1,10 +1,15 @@
-# aws cloudformation deploy --stack-name acm-simple --parameter-overrides HostedZoneId=Z01386901AXGFXHXKIDJX DomainName=petoboto.com --template-file cloudformation/acm-simple/template.cform.yaml
+# ENV_ID="project"
+# DOMAIN_NAME="petoboto.com"
+# ZONE_ID="Z01386901AXGFXHXKIDJX"
+# aws cloudformation deploy --stack-name acm-simple --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/acm-simple/template.cform.yaml
 # aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/vpc.cform.yaml
 # aws cloudformation deploy --stack-name simple-alb  --template-file cloudformation/alb-simple/template.cform.yaml
 # DNS_NAME=$(aws cloudformation describe-stacks --stack-name simple-alb --query "Stacks[0].Outputs[?OutputKey=='ALBDNSName'].OutputValue" --output text)
 # curl -k https://$DNS_NAME
-# aws cloudformation deploy --stack-name simple-alb-alias --parameter-overrides HostedZoneId=Z01386901AXGFXHXKIDJX DomainName=petoboto.com --template-file cloudformation/alb-simple/alias.cform.yaml
+# aws cloudformation deploy --stack-name simple-alb-alias --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/alb-simple/alias.cform.yaml
 # aws cloudformation deploy --stack-name simple-alb-instances  --template-file cloudformation/alb-simple/instances.cform.yaml
+# curl https://$ENV_ID.$DOMAIN_NAME
+# echo https://$ENV_ID.$DOMAIN_NAME
 
 Description: Simple ALB
 
@@ -87,3 +92,9 @@ Outputs:
     Value: !GetAtt LoadBalancer.CanonicalHostedZoneID
     Export:
       Name: !Sub "${EnvId}-ALBZoneId"
+  
+  ALBSecurityGroupId:
+    Description: Security Group ID of the Application Load Balancer
+    Value: !Ref ALBSecurityGroup
+    Export:
+      Name: !Sub "${EnvId}-ALBSecurityGroupId"

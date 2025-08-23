@@ -1,4 +1,3 @@
-
 Description: Pair of EC2 instances behind an ALB
 
 Parameters:
@@ -6,22 +5,17 @@ Parameters:
     Type: String
     Default: project
 
-  GitHubUser:
-    Description: GitHub username owning the repo
+  InstanceType:
     Type: String
-    Default: "faermanj"
-
-  GitHubRepo:
-    Description: GitHub repository name
-    Type: String
-    Default: "daws"
+    Default: t4g.small
+    ConstraintDescription: must be a valid and available EC2 instance type.
 
 Resources:
   InstanceA:
     Type: AWS::EC2::Instance
     Properties:
-      VpcId:
-        Fn::ImportValue: !Sub '${EnvId}-SimpleVpcId'
+      SubnetId:
+        Fn::ImportValue: !Sub '${EnvId}-PrivateSubnet1Id'
       InstanceType: !Ref InstanceType
       ImageId:
         Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}"
@@ -52,6 +46,8 @@ Resources:
   InstanceB:
     Type: AWS::EC2::Instance
     Properties:
+      SubnetId:
+        Fn::ImportValue: !Sub '${EnvId}-PrivateSubnet2Id'
       InstanceType: !Ref InstanceType
       ImageId:
         Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}"
@@ -83,33 +79,41 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTP on 8080 from SG
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId:
-            Fn::ImportValue: !Sub '${EnvId}-AlbSecurityGroupId'
+            Fn::ImportValue: !Sub "${EnvId}-ALBSecurityGroupId"
 
-            AlbTargetGroup:
-              Type: AWS::ElasticLoadBalancingV2::TargetGroup
-              Properties:
-                VpcId:
-                  Fn::ImportValue: !Sub '${EnvId}-SimpleVpcId'
-                Protocol: HTTP
-                Port: 80
-                TargetType: instance
-                HealthCheckProtocol: HTTP
-                HealthCheckPort: traffic-port
-                HealthCheckPath: /
-                Matcher:
-                  HttpCode: '200'
-                Targets:
-                  - Id: !Ref InstanceA
-                  - Id: !Ref InstanceB
+  AlbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
+      Protocol: HTTP
+      Port: 80
+      TargetType: instance
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: traffic-port
+      HealthCheckPath: /
+      Matcher:
+        HttpCode: "200"
+      Targets:
+        - Id: !Ref InstanceA
+        - Id: !Ref InstanceB
 Outputs:
-  InstancePublicIP:
-    Description: Public IP of the EC2 instance
-    Value: !GetAtt WebServerInstance.PublicIp
-  WebURL:
-    Description: URL to access the web server
-    Value: !Sub "http://${WebServerInstance.PublicDnsName}/"
+  InstanceAId:
+    Description: ID of Instance A
+    Value: !Ref InstanceA
+  InstanceBId:
+    Description: ID of Instance B
+    Value: !Ref InstanceB
+  InstanceSecurityGroupId:
+    Description: Security Group ID for instances
+    Value: !Ref InstanceSecurityGroup
+  AlbTargetGroupArn:
+    Description: ARN of the ALB Target Group
+    Value: !Ref AlbTargetGroup
