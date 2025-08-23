@@ -2,7 +2,7 @@
 # DOMAIN_NAME="petoboto.com"
 # ZONE_ID="Z01386901AXGFXHXKIDJX"
 # aws cloudformation deploy --stack-name acm-simple --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/acm-simple/template.cform.yaml
-# aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/vpc.cform.yaml
+# aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
 # aws cloudformation deploy --stack-name alb-simple  --template-file cloudformation/alb-simple/template.cform.yaml
 # DNS_NAME=$(aws cloudformation describe-stacks --stack-name alb-simple --query "Stacks[0].Outputs[?OutputKey=='ALBDNSName'].OutputValue" --output text)
 # curl -k "https://$DNS_NAME" 

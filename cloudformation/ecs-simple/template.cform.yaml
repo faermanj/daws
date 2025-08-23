@@ -1,0 +1,92 @@
+# ENV_ID="project"
+# DOMAIN_NAME="petoboto.com"
+# ZONE_ID="Z01386901AXGFXHXKIDJX"
+# aws cloudformation deploy --stack-name acm-simple --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/acm-simple/template.cform.yaml
+# aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
+# aws cloudformation deploy --stack-name alb-simple  --template-file cloudformation/alb-simple/template.cform.yaml
+# aws cloudformation deploy --stack-name alb-simple-alias --parameter-overrides HostedZoneId=$ZONE_ID DomainName=$DOMAIN_NAME --template-file cloudformation/alb-simple/alias.cform.yaml
+# aws cloudformation deploy --stack-name ecs-simple --capabilities CAPABILITY_NAMED_IAM --template-file cloudformation/ecs-simple/template.cform.yaml
+# aws cloudformation deploy --stack-name ecs-2048 --template-file cloudformation/ecs-simple/ecs-2048.cform.yaml
+
+# URL="https://$ENV_ID.$DOMAIN_NAME"
+# echo "$URL"
+# curl "$URL"
+# for i in {1..10}; do echo -n "$i: " ; curl -k "$URL"; done
+Description: ECS Cluster
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+Resources:
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub '${EnvId}-ecs'
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Configuration:
+        ExecuteCommandConfiguration:
+          Logging: DEFAULT
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${EnvId}-ecs-exec'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+  AppLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/ecs/${EnvId}/default'
+      RetentionInDays: 14
+
+Outputs:
+  EcsClusterArn:
+    Description: The ARN of the ECS Cluster
+    Value: !GetAtt EcsCluster.Arn
+    Export:
+      Name: !Sub '${EnvId}-EcsClusterArn'
+
+  ExecutionRoleArn:
+    Description: The ARN of the ECS Task Execution Role
+    Value: !GetAtt ExecutionRole.Arn
+    Export:
+      Name: !Sub '${EnvId}-ExecutionRoleArn'
+
+  AppLogGroupArn:
+    Description: The ARN of the Application Log Group
+    Value: !GetAtt AppLogGroup.Arn
+    Export:
+      Name: !Sub '${EnvId}-AppLogGroupArn'
+
+  AppLogGroupName:
+    Description: The name of the Application Log Group
+    Value: !Ref AppLogGroup
+    Export:
+      Name: !Sub '${EnvId}-AppLogGroupName'

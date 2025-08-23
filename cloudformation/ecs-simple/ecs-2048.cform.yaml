@@ -1,0 +1,99 @@
+Description: 2048 on ECS
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+Resources:
+  ECSTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${EnvId}-2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "256"
+      Memory: "512"
+      ExecutionRoleArn:
+        Fn::ImportValue: !Sub "${EnvId}-ExecutionRoleArn"
+      ContainerDefinitions:
+        - Name: 2048
+          Image: alexwhen/docker-2048:latest
+          PortMappings:
+            - ContainerPort: 80
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Fn::ImportValue: !Sub "${EnvId}-AppLogGroupName"
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub "${EnvId}-2048"
+      Cluster:
+        Fn::ImportValue: !Sub "${EnvId}-EcsClusterName"
+      LaunchType: FARGATE
+      DesiredCount: 1
+      TaskDefinition: !Ref ECSTaskDefinition
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          Subnets:
+            - Fn::ImportValue: !Sub "${EnvId}-PrivateSubnet1Id"
+            - Fn::ImportValue: !Sub "${EnvId}-PrivateSubnet2Id"
+            - Fn::ImportValue: !Sub "${EnvId}-PrivateSubnet3Id"
+          SecurityGroups:
+            - Fn::ImportValue: !Sub "${EnvId}-ServiceSecurityGroupId"
+      LoadBalancers:
+        - ContainerName: 2048
+          ContainerPort: 80
+          TargetGroupArn: !Ref ECSTargetGroup
+      EnableECSManagedTags: true
+      PropagateTags: SERVICE
+
+  ECSTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${EnvId}-2048"
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      Matcher:
+        HttpCode: "200"
+
+  ECSListenerRule2048:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: 
+        Fn::ImportValue: !Sub "${EnvId}-AlbHttpListenerArn"
+      Priority: 2048
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /2048
+            - /2048/*
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref ECSTargetGroup
+
+Outputs:
+  EcsTaskDefinitionArn:
+    Description: The ARN of the ECS Task Definition
+    Value: 
+      Fn::GetAtt: 
+        - ECSTaskDefinition
+        - Arn
+    Export:
+      Name: !Sub "${EnvId}-EcsTaskDefinitionArn"
