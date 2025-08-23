@@ -9,21 +9,21 @@ ZONE_ID=${ZONE_ID:-"Z01386901AXGFXHXKIDJX"}
 aws cloudformation deploy --stack-name acm-simple \
     --parameter-overrides HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
-    --template-file $DIR/cloudformation/acm-simple/template.cform.yaml
+    --template-file $DIR/../acm-simple/template.cform.yaml
 
 aws cloudformation deploy --stack-name vpc-3ha \
-    --template-file $DIR/cloudformation/vpc-3ha/vpc.cform.yaml
+    --template-file $DIR/../vpc-3ha/vpc.cform.yaml
 
 aws cloudformation deploy --stack-name alb-simple  \
-    --template-file $DIR/cloudformation/alb-simple/template.cform.yaml
+    --template-file $DIR/../alb-simple/template.cform.yaml
 
 aws cloudformation deploy --stack-name alb-simple-alias \
     --parameter-overrides HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
-    --template-file $DIR/cloudformation/alb-simple/alias.cform.yaml
+    --template-file $DIR/../alb-simple/alias.cform.yaml
 
 aws cloudformation deploy --stack-name alb-simple-instances  \
-    --template-file $DIR/cloudformation/alb-simple/instances.cform.yaml
+    --template-file $DIR/../alb-simple/instances.cform.yaml
 
 sleep 30;
 
