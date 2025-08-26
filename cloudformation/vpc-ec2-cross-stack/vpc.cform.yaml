@@ -23,15 +23,15 @@ Parameters:
     Type: String
     Default: 10.0.5.0/24
   
-  PrivateSubnet1Cidr:
+  IsolatedSubnet1Cidr:
     Type: String
     Default: 10.0.2.0/24
   
-  PrivateSubnet2Cidr:
+  IsolatedSubnet2Cidr:
     Type: String
     Default: 10.0.4.0/24
   
-  PrivateSubnet3Cidr:
+  IsolatedSubnet3Cidr:
     Type: String
     Default: 10.0.6.0/24
 
@@ -124,11 +124,11 @@ Resources:
         - Key: Tier
           Value: public
 
-  PrivateSubnet1:
+  IsolatedSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Ref PrivateSubnet1Cidr
+      CidrBlock: !Ref IsolatedSubnet1Cidr
       AvailabilityZone: !Select [0, !GetAZs ""]
       MapPublicIpOnLaunch: false
       Tags:
@@ -139,11 +139,11 @@ Resources:
         - Key: Isolation
           Value: isolated
 
-  PrivateSubnet2:
+  IsolatedSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Ref PrivateSubnet2Cidr
+      CidrBlock: !Ref IsolatedSubnet2Cidr
       AvailabilityZone: !Select [1, !GetAZs ""]
       MapPublicIpOnLaunch: false
       Tags:
@@ -154,11 +154,11 @@ Resources:
         - Key: Isolation
           Value: isolated
 
-  PrivateSubnet3:
+  IsolatedSubnet3:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Ref PrivateSubnet3Cidr
+      CidrBlock: !Ref IsolatedSubnet3Cidr
       AvailabilityZone: !Select [2, !GetAZs ""]
       MapPublicIpOnLaunch: false
       Tags:
@@ -185,20 +185,20 @@ Resources:
       SubnetId: !Ref PublicSubnet3
       RouteTableId: !Ref PublicRouteTable
 
-  AssocPrivateSubnet1:
+  AssocIsolatedSubnet1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PrivateSubnet1
+      SubnetId: !Ref IsolatedSubnet1
       RouteTableId: !Ref PrivateRouteTable
-  AssocPrivateSubnet2:
+  AssocIsolatedSubnet2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PrivateSubnet2
+      SubnetId: !Ref IsolatedSubnet2
       RouteTableId: !Ref PrivateRouteTable
-  AssocPrivateSubnet3:
+  AssocIsolatedSubnet3:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PrivateSubnet3
+      SubnetId: !Ref IsolatedSubnet3
       RouteTableId: !Ref PrivateRouteTable
 
 Outputs:
@@ -228,14 +228,14 @@ Outputs:
     Export:
       Name: !Sub ${EnvId}-PublicSubnetIds
 
-  PrivateSubnetIds:
+  IsolatedSubnetIds:
     Value:
       !Join [
         ",",
-        [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3],
+        [!Ref IsolatedSubnet1, !Ref IsolatedSubnet2, !Ref IsolatedSubnet3],
       ]
     Export:
-      Name: !Sub ${EnvId}-PrivateSubnetIds
+      Name: !Sub ${EnvId}-IsolatedSubnetIds
 
   PublicSubnet1Id:
     Value: !Ref PublicSubnet1
@@ -250,15 +250,15 @@ Outputs:
     Export:
       Name: !Sub ${EnvId}-PublicSubnet3Id
 
-  PrivateSubnet1Id:
-    Value: !Ref PrivateSubnet1
+  IsolatedSubnet1Id:
+    Value: !Ref IsolatedSubnet1
     Export:
-      Name: !Sub ${EnvId}-PrivateSubnet1Id
-  PrivateSubnet2Id:
-    Value: !Ref PrivateSubnet2
+      Name: !Sub ${EnvId}-IsolatedSubnet1Id
+  IsolatedSubnet2Id:
+    Value: !Ref IsolatedSubnet2
     Export:
-      Name: !Sub ${EnvId}-PrivateSubnet2Id
-  PrivateSubnet3Id:
-    Value: !Ref PrivateSubnet3
+      Name: !Sub ${EnvId}-IsolatedSubnet2Id
+  IsolatedSubnet3Id:
+    Value: !Ref IsolatedSubnet3
     Export:
-      Name: !Sub ${EnvId}-PrivateSubnet3Id
+      Name: !Sub ${EnvId}-IsolatedSubnet3Id

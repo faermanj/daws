@@ -186,7 +186,7 @@
     "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/PublicSubnetSubnet2/DefaultRoute"
    }
   },
-  "SimpleWebCdkVpcPrivateSubnetSubnet1Subnet9E7074AA": {
+  "SimpleWebCdkVpcIsolatedSubnetSubnet1Subnet9E7074AA": {
    "Type": "AWS::EC2::Subnet",
    "Properties": {
     "AvailabilityZone": {
@@ -202,7 +202,7 @@
     "Tags": [
      {
       "Key": "aws-cdk:subnet-name",
-      "Value": "PrivateSubnet"
+      "Value": "IsolatedSubnet"
      },
      {
       "Key": "aws-cdk:subnet-type",
@@ -210,7 +210,7 @@
      },
      {
       "Key": "Name",
-      "Value": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1"
+      "Value": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1"
      }
     ],
     "VpcId": {
@@ -218,16 +218,16 @@
     }
    },
    "Metadata": {
-    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1/Subnet"
+    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1/Subnet"
    }
   },
-  "SimpleWebCdkVpcPrivateSubnetSubnet1RouteTable8373B147": {
+  "SimpleWebCdkVpcIsolatedSubnetSubnet1RouteTable8373B147": {
    "Type": "AWS::EC2::RouteTable",
    "Properties": {
     "Tags": [
      {
       "Key": "Name",
-      "Value": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1"
+      "Value": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1"
      }
     ],
     "VpcId": {
@@ -235,24 +235,24 @@
     }
    },
    "Metadata": {
-    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1/RouteTable"
+    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1/RouteTable"
    }
   },
-  "SimpleWebCdkVpcPrivateSubnetSubnet1RouteTableAssociation486955CB": {
+  "SimpleWebCdkVpcIsolatedSubnetSubnet1RouteTableAssociation486955CB": {
    "Type": "AWS::EC2::SubnetRouteTableAssociation",
    "Properties": {
     "RouteTableId": {
-     "Ref": "SimpleWebCdkVpcPrivateSubnetSubnet1RouteTable8373B147"
+     "Ref": "SimpleWebCdkVpcIsolatedSubnetSubnet1RouteTable8373B147"
     },
     "SubnetId": {
-     "Ref": "SimpleWebCdkVpcPrivateSubnetSubnet1Subnet9E7074AA"
+     "Ref": "SimpleWebCdkVpcIsolatedSubnetSubnet1Subnet9E7074AA"
     }
    },
    "Metadata": {
-    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1/RouteTableAssociation"
+    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1/RouteTableAssociation"
    }
   },
-  "SimpleWebCdkVpcPrivateSubnetSubnet2Subnet58579D6E": {
+  "SimpleWebCdkVpcIsolatedSubnetSubnet2Subnet58579D6E": {
    "Type": "AWS::EC2::Subnet",
    "Properties": {
     "AvailabilityZone": {
@@ -268,7 +268,7 @@
     "Tags": [
      {
       "Key": "aws-cdk:subnet-name",
-      "Value": "PrivateSubnet"
+      "Value": "IsolatedSubnet"
      },
      {
       "Key": "aws-cdk:subnet-type",
@@ -276,7 +276,7 @@
      },
      {
       "Key": "Name",
-      "Value": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2"
+      "Value": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2"
      }
     ],
     "VpcId": {
@@ -284,16 +284,16 @@
     }
    },
    "Metadata": {
-    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2/Subnet"
+    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2/Subnet"
    }
   },
-  "SimpleWebCdkVpcPrivateSubnetSubnet2RouteTable0934A55A": {
+  "SimpleWebCdkVpcIsolatedSubnetSubnet2RouteTable0934A55A": {
    "Type": "AWS::EC2::RouteTable",
    "Properties": {
     "Tags": [
      {
       "Key": "Name",
-      "Value": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2"
+      "Value": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2"
      }
     ],
     "VpcId": {
@@ -301,21 +301,21 @@
     }
    },
    "Metadata": {
-    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2/RouteTable"
+    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2/RouteTable"
    }
   },
-  "SimpleWebCdkVpcPrivateSubnetSubnet2RouteTableAssociation84DCCB65": {
+  "SimpleWebCdkVpcIsolatedSubnetSubnet2RouteTableAssociation84DCCB65": {
    "Type": "AWS::EC2::SubnetRouteTableAssociation",
    "Properties": {
     "RouteTableId": {
-     "Ref": "SimpleWebCdkVpcPrivateSubnetSubnet2RouteTable0934A55A"
+     "Ref": "SimpleWebCdkVpcIsolatedSubnetSubnet2RouteTable0934A55A"
     },
     "SubnetId": {
-     "Ref": "SimpleWebCdkVpcPrivateSubnetSubnet2Subnet58579D6E"
+     "Ref": "SimpleWebCdkVpcIsolatedSubnetSubnet2Subnet58579D6E"
     }
    },
    "Metadata": {
-    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2/RouteTableAssociation"
+    "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2/RouteTableAssociation"
    }
   },
   "SimpleWebCdkVpcIGWA595E2DB": {
@@ -493,17 +493,17 @@
     ],
     "Subnets": [
      {
-      "Ref": "SimpleWebCdkVpcPrivateSubnetSubnet1Subnet9E7074AA"
+      "Ref": "SimpleWebCdkVpcIsolatedSubnetSubnet1Subnet9E7074AA"
      },
      {
-      "Ref": "SimpleWebCdkVpcPrivateSubnetSubnet2Subnet58579D6E"
+      "Ref": "SimpleWebCdkVpcIsolatedSubnetSubnet2Subnet58579D6E"
      }
     ],
     "Type": "application"
    },
    "DependsOn": [
-    "SimpleWebCdkVpcPrivateSubnetSubnet1RouteTableAssociation486955CB",
-    "SimpleWebCdkVpcPrivateSubnetSubnet2RouteTableAssociation84DCCB65"
+    "SimpleWebCdkVpcIsolatedSubnetSubnet1RouteTableAssociation486955CB",
+    "SimpleWebCdkVpcIsolatedSubnetSubnet2RouteTableAssociation84DCCB65"
    ],
    "Metadata": {
     "aws:cdk:path": "SimpleWebCdkStack/SimpleWebCdkALB/Resource"

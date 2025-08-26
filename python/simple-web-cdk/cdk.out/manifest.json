@@ -166,7 +166,7 @@
             "data": "SimpleWebCdkVpcPublicSubnetSubnet2DefaultRoute56F31A63"
           }
         ],
-        "/SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1": [
+        "/SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1": [
           {
             "type": "aws:cdk:analytics:construct",
             "data": {
@@ -190,25 +190,25 @@
             }
           }
         ],
-        "/SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1/Subnet": [
+        "/SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1/Subnet": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "SimpleWebCdkVpcPrivateSubnetSubnet1Subnet9E7074AA"
+            "data": "SimpleWebCdkVpcIsolatedSubnetSubnet1Subnet9E7074AA"
           }
         ],
-        "/SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1/RouteTable": [
+        "/SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1/RouteTable": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "SimpleWebCdkVpcPrivateSubnetSubnet1RouteTable8373B147"
+            "data": "SimpleWebCdkVpcIsolatedSubnetSubnet1RouteTable8373B147"
           }
         ],
-        "/SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet1/RouteTableAssociation": [
+        "/SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet1/RouteTableAssociation": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "SimpleWebCdkVpcPrivateSubnetSubnet1RouteTableAssociation486955CB"
+            "data": "SimpleWebCdkVpcIsolatedSubnetSubnet1RouteTableAssociation486955CB"
           }
         ],
-        "/SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2": [
+        "/SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2": [
           {
             "type": "aws:cdk:analytics:construct",
             "data": {
@@ -232,22 +232,22 @@
             }
           }
         ],
-        "/SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2/Subnet": [
+        "/SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2/Subnet": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "SimpleWebCdkVpcPrivateSubnetSubnet2Subnet58579D6E"
+            "data": "SimpleWebCdkVpcIsolatedSubnetSubnet2Subnet58579D6E"
           }
         ],
-        "/SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2/RouteTable": [
+        "/SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2/RouteTable": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "SimpleWebCdkVpcPrivateSubnetSubnet2RouteTable0934A55A"
+            "data": "SimpleWebCdkVpcIsolatedSubnetSubnet2RouteTable0934A55A"
           }
         ],
-        "/SimpleWebCdkStack/SimpleWebCdkVpc/PrivateSubnetSubnet2/RouteTableAssociation": [
+        "/SimpleWebCdkStack/SimpleWebCdkVpc/IsolatedSubnetSubnet2/RouteTableAssociation": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "SimpleWebCdkVpcPrivateSubnetSubnet2RouteTableAssociation84DCCB65"
+            "data": "SimpleWebCdkVpcIsolatedSubnetSubnet2RouteTableAssociation84DCCB65"
           }
         ],
         "/SimpleWebCdkStack/SimpleWebCdkVpc/IGW": [
@@ -866,7 +866,7 @@
             "recommendedValue": true,
             "explanation": "Add an S3 trust policy to a KMS key resource policy for SNS subscriptions."
           },
-          "@aws-cdk/aws-ec2:requirePrivateSubnetsForEgressOnlyInternetGateway": {
+          "@aws-cdk/aws-ec2:requireIsolatedSubnetsForEgressOnlyInternetGateway": {
             "userValue": true,
             "recommendedValue": true,
             "explanation": "When enabled, the EgressOnlyGateway resource is only created if private subnets are defined in the dual-stack VPC."

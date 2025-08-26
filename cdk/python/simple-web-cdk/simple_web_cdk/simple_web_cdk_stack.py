@@ -97,7 +97,7 @@ class SimpleWebCdkStack(Stack):
                 cidr_mask=24
             ),
             ec2.SubnetConfiguration(
-                name="PrivateSubnet",
+                name="IsolatedSubnet",
                 subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,
                 cidr_mask=24
             )

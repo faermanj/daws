@@ -15,7 +15,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       SubnetId:
-        Fn::ImportValue: !Sub "${EnvId}-PrivateSubnet1Id"
+        Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnet1Id"
       InstanceType: !Ref InstanceType
       ImageId:
         Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}"
@@ -37,7 +37,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       SubnetId:
-        Fn::ImportValue: !Sub "${EnvId}-PrivateSubnet1Id"
+        Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnet1Id"
       InstanceType: !Ref InstanceType
       ImageId:
         Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2}}"
