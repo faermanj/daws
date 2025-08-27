@@ -68,7 +68,7 @@ Resources:
         MinimumHealthyPercent: 50
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: DISABLED
+          AssignPublicIp: ENABLED
           Subnets:
             - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet1Id"
             - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet2Id"
