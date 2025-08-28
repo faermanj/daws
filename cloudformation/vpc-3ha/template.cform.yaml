@@ -75,13 +75,13 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  PrivateRouteTable:
+  IsolatedRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${EnvId}-private-rt
+          Value: !Sub ${EnvId}-isolated-rt
         - Key: Isolation
           Value: isolated
 
@@ -133,11 +133,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${EnvId}-private-a
-        - Key: Tier
-          Value: private
-        - Key: Isolation
-          Value: isolated
+          Value: !Sub ${EnvId}-isolated-a
 
   IsolatedSubnet2:
     Type: AWS::EC2::Subnet
@@ -148,11 +144,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${EnvId}-private-b
-        - Key: Tier
-          Value: private
-        - Key: Isolation
-          Value: isolated
+          Value: !Sub ${EnvId}-isolated-b
 
   IsolatedSubnet3:
     Type: AWS::EC2::Subnet
@@ -163,11 +155,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${EnvId}-private-c
-        - Key: Tier
-          Value: private
-        - Key: Isolation
-          Value: isolated
+          Value: !Sub ${EnvId}-isolated-c
 
   AssocPublicSubnet1:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -189,17 +177,17 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref IsolatedSubnet1
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref IsolatedRouteTable
   AssocIsolatedSubnet2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref IsolatedSubnet2
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref IsolatedRouteTable
   AssocIsolatedSubnet3:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref IsolatedSubnet3
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref IsolatedRouteTable
 
 Outputs:
   VpcId:
@@ -217,10 +205,10 @@ Outputs:
     Export:
       Name: !Sub ${EnvId}-PublicRouteTableId
 
-  PrivateRouteTableId:
-    Value: !Ref PrivateRouteTable
+  IsolatedRouteTableId:
+    Value: !Ref IsolatedRouteTable
     Export:
-      Name: !Sub ${EnvId}-PrivateRouteTableId
+      Name: !Sub ${EnvId}-IsolatedRouteTableId
 
   PublicSubnetIds:
     Value:

@@ -11,7 +11,7 @@ Parameters:
     Description: Docker image for the 2048 game
 
 Resources:
-  ECSTaskDefinition:
+  ECS2048TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Family: !Sub "${EnvId}-2048"
@@ -23,7 +23,7 @@ Resources:
       ExecutionRoleArn:
         Fn::ImportValue: !Sub "${EnvId}-ExecutionRoleArn"
       ContainerDefinitions:
-        - Name: 2048
+        - Name: ECS2048
           Image: !Ref Image
           PortMappings:
             - ContainerPort: 80
@@ -36,7 +36,7 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: ecs
 
-  ServiceSecurityGroup:
+  ECS2048SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: !Sub "${EnvId}-2048 Security Group"
@@ -54,7 +54,7 @@ Resources:
           ToPort: 0
           CidrIp: 0.0.0.0/0
 
-  ECSService:
+  ECS2048Service:
     Type: AWS::ECS::Service
     Properties:
       ServiceName: !Sub "${EnvId}-2048"
@@ -62,10 +62,7 @@ Resources:
         Fn::ImportValue: !Sub "${EnvId}-ECSClusterName"
       LaunchType: FARGATE
       DesiredCount: 1
-      TaskDefinition: !Ref ECSTaskDefinition
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 50
+      TaskDefinition: !Ref ECS2048TaskDefinition
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -74,15 +71,15 @@ Resources:
             - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet2Id"
             - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet3Id"
           SecurityGroups:
-            - !Ref ServiceSecurityGroup
+            - !Ref ECS2048SecurityGroup
       LoadBalancers:
-        - ContainerName: 2048
+        - ContainerName: ECS2048
           ContainerPort: 80
-          TargetGroupArn: !Ref ECSTargetGroup
+          TargetGroupArn: !Ref ECS2048TargetGroup
       EnableECSManagedTags: true
       PropagateTags: SERVICE
 
-  ECSTargetGroup:
+  ECS2048TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: !Sub "${EnvId}-2048"
@@ -105,18 +102,13 @@ Resources:
       Conditions:
         - Field: path-pattern
           Values:
-            - /2048
-            - /2048/*
+            - /
+            - /*
       Actions:
         - Type: forward
-          TargetGroupArn: !Ref ECSTargetGroup
+          TargetGroupArn: !Ref ECS2048TargetGroup
 
 Outputs:
-  ECSTaskDefinitionArn:
-    Description: The ARN of the ECS Task Definition
-    Value: 
-      Fn::GetAtt: 
-        - ECSTaskDefinition
-        - Arn
-    Export:
-      Name: !Sub "${EnvId}-ECSTaskDefinitionArn"
+  ECS2048TaskDefinitionRef:
+    Description: The Ref ECS Task Definition
+    Value: !Ref ECS2048TaskDefinition

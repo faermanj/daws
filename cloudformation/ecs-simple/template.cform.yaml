@@ -16,6 +16,14 @@ Parameters:
   EnvId:
     Type: String
     Default: project
+  
+  ContainerInsights:
+    Type: String
+    Default: enabled
+    AllowedValues:
+      - enabled
+      - disabled
+    Description: Enable or disable container insights
 
 Resources:
   ECSCluster:
@@ -24,16 +32,9 @@ Resources:
       ClusterName: !Sub '${EnvId}-ecs-cluster'
       CapacityProviders:
         - FARGATE
-        - FARGATE_SPOT
-      DefaultCapacityProviderStrategy:
-        - CapacityProvider: FARGATE
-          Weight: 1
       ClusterSettings:
         - Name: containerInsights
-          Value: enabled
-      Configuration:
-        ExecuteCommandConfiguration:
-          Logging: DEFAULT
+          Value: !Ref ContainerInsights
       Tags:
         - Key: EnvId
           Value: !Ref EnvId
