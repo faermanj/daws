@@ -51,5 +51,5 @@ aws ec2 wait instance-status-ok  --instance-ids "$INSTANCE_1_ID"
 INSTANCE_0_IP=$(aws ec2 describe-instances --instance-ids "$INSTANCE_0_ID" --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
 INSTANCE_1_IP=$(aws ec2 describe-instances --instance-ids "$INSTANCE_1_ID" --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
 
-curl http://$INSTANCE_0_IP
-curl http://$INSTANCE_1_IP
+curl http://${INSTANCE_0_IP}:8080
+curl http://${INSTANCE_1_IP}:8080
