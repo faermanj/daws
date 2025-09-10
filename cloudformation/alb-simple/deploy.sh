@@ -12,7 +12,7 @@ aws cloudformation deploy --stack-name acm-simple \
     --template-file $DIR/../acm-simple/template.cform.yaml
 
 aws cloudformation deploy --stack-name vpc-3ha \
-    --template-file $DIR/../vpc-3ha/vpc.cform.yaml
+    --template-file $DIR/../vpc-3ha/template.cform.yaml
 
 aws cloudformation deploy --stack-name alb-simple  \
     --template-file $DIR/../alb-simple/template.cform.yaml
@@ -30,7 +30,3 @@ sleep 30;
 URL="https://$ENV_ID.$DOMAIN_NAME"
 echo "$URL"
 
-for i in {1..10}; do 
-    echo -n "$i: "; 
-    curl -k "$URL"; 
-done
