@@ -4,7 +4,10 @@
     "features": {
         "ghcr.io/dlouwers/devcontainer-features/devbox:1": {},
         "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-        "ghcr.io/devcontainers/features/aws-cli:1"	: {}   
+        "ghcr.io/devcontainers/features/aws-cli:1": {},
+        "ghcr.io/customink/codespaces-features/sam-cli:1": {},
+        "ghcr.io/devcontainers-extra/features/aws-cdk:2": {},
+        "ghcr.io/devcontainers-extra/features/amplify-cli:2": {}
     },
     "postCreateCommand": "devbox install"
 }
