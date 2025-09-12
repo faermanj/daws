@@ -25,8 +25,9 @@ aws cloudformation deploy --stack-name alb-simple-alias \
 aws cloudformation deploy --stack-name alb-simple-instances  \
     --template-file $DIR/../alb-simple/instances.cform.yaml
 
-sleep 30;
+sleep 42;
 
 URL="https://$ENV_ID.$DOMAIN_NAME"
-echo "$URL"
-
+echo "curl $URL"
+curl $URL
+curl $URL

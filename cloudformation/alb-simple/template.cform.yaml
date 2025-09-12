@@ -73,7 +73,7 @@ Resources:
           FixedResponseConfig:
             StatusCode: "418"
             ContentType: text/html
-            MessageBody: !Sub '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAP1BMVEUsN0AfLDfZdzzqiUa5aDxdVk380JX39/TcekA5Q0mzbkT5wXrjgDvm5uL2u3TpkkwAAAAAAAAAAAAAAAAAAACQDqZ3AAAAFXRSTlP///////////////////////////8G25JnAAAAwUlEQVR42tWT2xKDIAxEdxOLt0r+/29LoBqcOvbZfWEcTpaQRWx/hCcCwD0wp4x7B946ADTD+RT/IFuxrim7VHkGYLWGVGsC3Q1xBMSXEfwKYylatSx7Dy8b3egQJgGlGndAPuSdlq2JAWRuzCkA3fbmDwCaUlhode8BQe5kwrPDkq0HxPxasABQPN8BqANs02nAXPqW/hbCVh9ZMAAfREw7gilzOvZFcZFmDNImXsXtWVeJ4Po9YJBhGYr49B/nRx949C7iLhodbgAAAABJRU5ErkJggg==" alt="I am a Teapot"/>'
+            MessageBody: !Sub '<img alt="I am a Teapot" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAP1BMVEUsN0AfLDfZdzzqiUa5aDxdVk380JX39/TcekA5Q0mzbkT5wXrjgDvm5uL2u3TpkkwAAAAAAAAAAAAAAAAAAACQDqZ3AAAAFXRSTlP///////////////////////////8G25JnAAAAwUlEQVR42tWT2xKDIAxEdxOLt0r+/29LoBqcOvbZfWEcTpaQRWx/hCcCwD0wp4x7B946ADTD+RT/IFuxrim7VHkGYLWGVGsC3Q1xBMSXEfwKYylatSx7Dy8b3egQJgGlGndAPuSdlq2JAWRuzCkA3fbmDwCaUlhode8BQe5kwrPDkq0HxPxasABQPN8BqANs02nAXPqW/hbCVh9ZMAAfREw7gilzOvZFcZFmDNImXsXtWVeJ4Po9YJBhGYr49B/nRx949C7iLhodbgAAAABJRU5ErkJggg=="/>'
 
 Outputs:
   ALBArn:
