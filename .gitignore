@@ -2,3 +2,8 @@
 .envrc
 node-modules
 .*.json
+.aws-sam
+.DS_Store
+.vscode
+.idea
+*.log
