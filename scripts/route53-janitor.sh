@@ -3,7 +3,6 @@
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 <domain-name>"
     exit 1
 fi
 
@@ -13,11 +12,8 @@ DOMAIN_NAME="$1"
 HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name "$DOMAIN_NAME" --query "HostedZones[?Name == '$DOMAIN_NAME.'].Id" --output text | sed 's|/hostedzone/||')
 
 if [[ -z "$HOSTED_ZONE_ID" ]]; then
-    echo "Hosted zone for $DOMAIN_NAME not found."
-    exit 1
+    exit 0
 fi
-
-echo "Found hosted zone ID: $HOSTED_ZONE_ID"
 
 # Get all record sets except SOA and NS at the root
 TMPFILE=$(mktemp)
@@ -36,16 +32,13 @@ CHANGE_BATCH=$(jq '
 NUM_CHANGES=$(echo "$CHANGE_BATCH" | jq '.Changes | length')
 
 if [[ "$NUM_CHANGES" -gt 0 ]]; then
-    echo "Deleting $NUM_CHANGES record sets..."
+    # Print each record to be deleted
+    echo "$CHANGE_BATCH" | jq -r '.Changes[].ResourceRecordSet | "route53\trecord-set\t\(.Name) \(.Type)"'
     aws route53 change-resource-record-sets --hosted-zone-id "$HOSTED_ZONE_ID" --change-batch "$CHANGE_BATCH"
-else
-    echo "No record sets to delete."
 fi
 
 rm "$TMPFILE"
 
 # Delete the hosted zone
-echo "Deleting hosted zone $HOSTED_ZONE_ID..."
 aws route53 delete-hosted-zone --id "$HOSTED_ZONE_ID"
-
-echo "Done."
+echo -e "route53	hosted-zone	${HOSTED_ZONE_ID}"

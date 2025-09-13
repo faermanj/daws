@@ -3,7 +3,6 @@
 set -euo pipefail
 
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 <domain-name>"
     exit 1
 fi
 
@@ -15,17 +14,13 @@ DIST_ID=$(aws cloudfront list-distributions \
     --output text)
 
 if [ -z "$DIST_ID" ]; then
-    echo "No CloudFront distribution found for domain: $DOMAIN"
-    exit 1
+    exit 0
 fi
-
-echo "Found distribution ID: $DIST_ID"
 
 # Get the current ETag for the distribution
 ETAG=$(aws cloudfront get-distribution --id "$DIST_ID" --query "ETag" --output text)
 
 # Disable the distribution
-echo "Disabling distribution..."
 aws cloudfront update-distribution \
     --id "$DIST_ID" \
     --if-match "$ETAG" \
@@ -33,7 +28,6 @@ aws cloudfront update-distribution \
         jq '.DistributionConfig | .Enabled = false')" > /dev/null
 
 # Wait for the distribution to be disabled
-echo "Waiting for distribution to be disabled..."
 while true; do
     STATUS=$(aws cloudfront get-distribution --id "$DIST_ID" --query "Distribution.Status" --output text)
     ENABLED=$(aws cloudfront get-distribution --id "$DIST_ID" --query "Distribution.DistributionConfig.Enabled" --output text)
@@ -47,7 +41,5 @@ done
 ETAG=$(aws cloudfront get-distribution --id "$DIST_ID" --query "ETag" --output text)
 
 # Delete the distribution
-echo "Deleting distribution..."
 aws cloudfront delete-distribution --id "$DIST_ID" --if-match "$ETAG"
-
-echo "Distribution $DIST_ID deleted."
+echo -e "cloudfront	distribution	${DIST_ID}"

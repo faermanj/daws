@@ -29,6 +29,37 @@ aws cloudformation deploy --stack-name ecs-simple  \
 aws cloudformation deploy --stack-name ecs-2048  \
     --template-file $DIR/../ecs-simple/ecs-2048.cform.yaml
 
+fibonacci() {
+    # Fast-doubling method: O(log n) using integer arithmetic
+    local n=${1:-0}
+    if (( n <= 0 )); then echo 0; return; fi
+    if (( n == 1 )); then echo 1; return; fi
+
+    local a=0 b=1 bit=1
+    # Find highest power of two <= n
+    while (( bit <= n )); do
+        bit=$(( bit << 1 ))
+    done
+    bit=$(( bit >> 1 ))
+
+    while (( bit > 0 )); do
+        # c = F(2k) = F(k) * (2*F(k+1) - F(k))
+        # d = F(2k+1) = F(k)^2 + F(k+1)^2
+        local two_b_minus_a=$(( (b << 1) - a ))
+        local c=$(( a * two_b_minus_a ))
+        local d=$(( a*a + b*b ))
+        if (( n & bit )); then
+            a=$d
+            b=$(( c + d ))
+        else
+            a=$c
+            b=$d
+        fi
+        bit=$(( bit >> 1 ))
+    done
+    echo "$a"
+}
+
 sleep 42;
 
 URL="https://$ENV_ID.$DOMAIN_NAME"

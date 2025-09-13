@@ -1,0 +1,94 @@
+Description: Application Load Balancer with HTTPS listener and static response
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+
+Resources:
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ALB Security Group
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvId}-alb"
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${EnvId}-alb"
+      Scheme: internet-facing
+      Type: application
+      IpAddressType: ipv4
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets:
+        - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet1Id"
+        - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet2Id"
+        - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet3Id"
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvId}-alb"
+
+  HttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-2016-08
+      Certificates:
+        - CertificateArn:
+            Fn::ImportValue: !Sub "${EnvId}-AcmCertificateArn"
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            StatusCode: "418"
+            ContentType: text/html
+            MessageBody: !Sub '<img alt="I am a Teapot" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAP1BMVEUsN0AfLDfZdzzqiUa5aDxdVk380JX39/TcekA5Q0mzbkT5wXrjgDvm5uL2u3TpkkwAAAAAAAAAAAAAAAAAAACQDqZ3AAAAFXRSTlP///////////////////////////8G25JnAAAAwUlEQVR42tWT2xKDIAxEdxOLt0r+/29LoBqcOvbZfWEcTpaQRWx/hCcCwD0wp4x7B946ADTD+RT/IFuxrim7VHkGYLWGVGsC3Q1xBMSXEfwKYylatSx7Dy8b3egQJgGlGndAPuSdlq2JAWRuzCkA3fbmDwCaUlhode8BQe5kwrPDkq0HxPxasABQPN8BqANs02nAXPqW/hbCVh9ZMAAfREw7gilzOvZFcZFmDNImXsXtWVeJ4Po9YJBhGYr49B/nRx949C7iLhodbgAAAABJRU5ErkJggg=="/>'
+
+Outputs:
+  ALBArn:
+    Description: ARN of the Application Load Balancer
+    Value: !Ref LoadBalancer
+    Export:
+      Name: !Sub "${EnvId}-ALBArn"
+
+  ALBDNSName:
+    Description: DNS name of the Application Load Balancer
+    Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: !Sub "${EnvId}-ALBDNSName"
+
+  ALBZoneId:
+    Description: Zone ID of the Application Load Balancer
+    Value: !GetAtt LoadBalancer.CanonicalHostedZoneID
+    Export:
+      Name: !Sub "${EnvId}-ALBZoneId"
+  
+  ALBSecurityGroupId:
+    Description: Security Group ID of the Application Load Balancer
+    Value: !Ref ALBSecurityGroup
+    Export:
+      Name: !Sub "${EnvId}-ALBSecurityGroupId"
+  
+  HttpsListenerArn:
+    Description: ARN of the HTTPS Listener
+    Value: !Ref HttpsListener
+    Export:
+      Name: !Sub "${EnvId}-HttpsListenerArn"
+      
