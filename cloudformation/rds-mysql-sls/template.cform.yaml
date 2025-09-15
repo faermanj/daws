@@ -1,7 +1,7 @@
 # aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
 # aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
 
-Description: Aurora MySQL Serverless
+Description: Aurora Serverless MySQL
 
 Parameters:
   EnvId:
@@ -13,31 +13,31 @@ Parameters:
     Type: String
     Default: admin
     MinLength: 1
-    MaxLength: 16
+    MaxLength: 32
     AllowedPattern: "^[a-zA-Z][a-zA-Z0-9_]*$"
-    Description: Master username (starts with a letter; alphanumeric/underscore)
+    Description: Administrative username
 
   DBPassword:
     Type: String
     NoEcho: true
     MinLength: 8
-    MaxLength: 41
-    Description: Master user password
-
-  DBInstanceClass:
-    Type: String
-    Default: db.t3.medium
-    Description: Instance class
+    MaxLength: 128
+    Description: Administrative password
 
   AllowedCidr:
     Type: String
     Default: "0.0.0.0/0"
     Description: CIDRs allowed in to database clients
 
+  DatabaseName:
+    Type: String
+    Default: project
+    MinLength: 1
+    MaxLength: 64
+    AllowedPattern: "^[a-zA-Z][a-zA-Z0-9_]*$"
 
 Resources:
-
-  DbClientsSecurityGroup:
+  DBClientsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Aurora Clients
@@ -53,7 +53,6 @@ Resources:
         - Key: EnvId
           Value: !Ref EnvId
 
-
   DbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -64,14 +63,13 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref DbClientsSecurityGroup
+          SourceSecurityGroupId: !Ref DBClientsSecurityGroup
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: EnvId
           Value: !Ref EnvId
-
 
   DbSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -93,6 +91,7 @@ Resources:
       MasterUserPassword: !Ref DBPassword
       DBSubnetGroupName: !Ref DbSubnetGroup
       VpcSecurityGroupIds: [!Ref DbSecurityGroup]
+      DatabaseName: !Ref DatabaseName
       ServerlessV2ScalingConfiguration:
         MinCapacity: 0
         MaxCapacity: 8
@@ -135,3 +134,34 @@ Outputs:
   DBConnectCLI:
     Description: Command to connect to the DB with host and user
     Value: !Sub "mysql -h '${DbInstanceWriter.Endpoint.Address}' -u '${DBUsername}' -p"
+
+  DBHost:
+    Description: Writer DB instance host
+    Value: !GetAtt [DbInstanceWriter, Endpoint.Address]
+    Export:
+      Name: !Sub "${EnvId}-DBHost"
+
+  DBUsername:
+    Description: DB username
+    Value: !Ref DBUsername
+    Export:
+      Name: !Sub "${EnvId}-DBUsername"
+
+  DBPassword:
+    Description: DB password
+    Value: !Ref DBPassword
+    Export:
+      Name: !Sub "${EnvId}-DBPassword"
+
+  DBName:
+    Description: Database name
+    Value: !Ref DatabaseName
+    Export:
+      Name: !Sub "${EnvId}-DBName"
+      
+  DBClientsSecurityGroupId:
+    Description: Security Group for DB clients
+    Value: !Ref DBClientsSecurityGroup
+    Export:
+      Name: !Sub "${EnvId}-DBClientsSecurityGroupId"
+

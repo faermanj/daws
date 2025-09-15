@@ -23,5 +23,7 @@
     // Enable/disable default YAML formatter (requires restart)
     "yaml.format.enable": true,
     // Disable Kiro AI extension
-    "kiroAgent.configureMCP": "Disabled"
+    "kiroAgent.configureMCP": "Disabled",
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.pythonProjects": []
 }

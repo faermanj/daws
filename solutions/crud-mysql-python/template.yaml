@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: CRUD Python MySQL Example
+
+Globals:
+  Function:
+    Timeout: 15
+    LoggingConfig:
+      LogFormat: JSON
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+
+Resources:
+  ProjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: project/
+      Handler: app.lambda_handler
+      Runtime: python3.13
+      Architectures:
+      - x86_64
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub '${EnvId}-DBClientsSecurityGroupId'
+        SubnetIds:
+          - Fn::ImportValue: !Sub '${EnvId}-IsolatedSubnet1Id'
+          - Fn::ImportValue: !Sub '${EnvId}-IsolatedSubnet2Id'
+          - Fn::ImportValue: !Sub '${EnvId}-IsolatedSubnet3Id'
+      Environment:
+        Variables:
+            MYSQL_HOST: 
+              Fn::ImportValue: !Sub "${EnvId}-DBHost"
+            MYSQL_USER: 
+              Fn::ImportValue: !Sub "${EnvId}-DBUsername"
+            MYSQL_PASSWORD: 
+              Fn::ImportValue: !Sub "${EnvId}-DBPassword"
+            MYSQL_DATABASE: 
+              Fn::ImportValue: !Sub "${EnvId}-DBName"
+      Events:
+        ProjectApi:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  ProjectApi:
+    Description: API Gateway endpoint URL for Prod stage for Project function
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  ProjectFunction:
+    Description: Project Lambda Function ARN
+    Value: !GetAtt ProjectFunction.Arn
+  ProjectFunctionIamRole:
+    Description: Implicit IAM Role created for Project function
+    Value: !GetAtt ProjectFunctionRole.Arn
