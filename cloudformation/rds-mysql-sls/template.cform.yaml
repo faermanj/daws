@@ -1,0 +1,137 @@
+# aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
+# aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
+
+Description: Aurora MySQL Serverless
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Tag value for Application
+
+  DBUsername:
+    Type: String
+    Default: admin
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: "^[a-zA-Z][a-zA-Z0-9_]*$"
+    Description: Master username (starts with a letter; alphanumeric/underscore)
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    MaxLength: 41
+    Description: Master user password
+
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.medium
+    Description: Instance class
+
+  AllowedCidr:
+    Type: String
+    Default: "0.0.0.0/0"
+    Description: CIDRs allowed in to database clients
+
+
+Resources:
+
+  DbClientsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Aurora Clients
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: !Ref AllowedCidr
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Aurora MySQL SG
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref DbClientsSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for Aurora MySQL
+      SubnetIds:
+        - Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnet1Id"
+        - Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnet2Id"
+        - Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnet3Id"
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+  DbCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-mysql
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VpcSecurityGroupIds: [!Ref DbSecurityGroup]
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0
+        MaxCapacity: 8
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+  DbInstanceWriter:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DbCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-mysql
+      PubliclyAccessible: false
+      Tags:
+        - Key: EnvId
+          Value: !Ref EnvId
+
+Outputs:
+  ClusterArn:
+    Description: Cluster ARN
+    Value: !Ref DbCluster
+
+  WriterEndpoint:
+    Description: Writer endpoint address
+    Value: !GetAtt [DbCluster, Endpoint.Address]
+
+  ReaderEndpoint:
+    Description: Reader endpoint address
+    Value: !GetAtt [DbCluster, ReadEndpoint.Address]
+
+  SecurityGroupId:
+    Description: DB security group ID
+    Value: !Ref DbSecurityGroup
+
+  DBInstanceId:
+    Description: Writer DB instance identifier
+    Value: !Ref DbInstanceWriter
+
+  DBConnectCLI:
+    Description: Command to connect to the DB with host and user
+    Value: !Sub "mysql -h '${DbInstanceWriter.Endpoint.Address}' -u '${DBUsername}' -p"

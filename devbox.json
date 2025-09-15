@@ -8,7 +8,8 @@
     "nodePackages.aws-cdk@latest",
     "mysql-client@latest",
     "jq@latest",
-    "aws-sam-cli@latest"
+    "aws-sam-cli@latest",
+    "mysql@latest"
   ],
   "shell": {
     "init_hook": [
