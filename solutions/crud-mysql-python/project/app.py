@@ -19,61 +19,66 @@ def get_db_connection():
         yield conn
     finally:
         conn.close()
+    
+def handle_create(event, conn):
+    params = event['queryStringParameters'] or {}
+    pet = Pet(
+        name=params.get('name', ''),
+        date_of_birth=params.get('date_of_birth', None),
+        species=params.get('species', ''),
+    )
+    pet_id = Pet.create(pet, conn)
+    return {'pet_id': pet_id}
+
+def handle_read(event, conn):
+    pet_id = int(event['queryStringParameters'].get('pet_id', 0))
+    pet = Pet.get(pet_id, conn)
+    return pet.__dict__ if pet else None
+
+def handle_update(event, conn):
+    params = event['queryStringParameters'] or {}
+    pet = Pet(
+        pet_id=int(params.get('pet_id', 0)),
+        name=params.get('name', ''),
+        date_of_birth=params.get('date_of_birth', None),
+        species=params.get('species', ''),
+    )
+    Pet.update(pet, conn)
+    return {'pet_id': pet.pet_id}
+
+def handle_delete(event, conn):
+    pet_id = int(event['queryStringParameters'].get('pet_id', 0))
+    Pet.delete(pet_id, conn)
+    return {'pet_id': pet_id}
+
+def handle_list(conn):
+    pets = Pet.list_all(conn)
+    return [pet.__dict__ for pet in pets]
+
 
 with get_db_connection() as conn:
     Pet.create_table(conn)
 
-
 def lambda_handler(event, context):
     print(json.dumps(event))
-    status = "unknown"
-    action = None
-    if 'queryStringParameters' in event and event['queryStringParameters']:
-        action = event['queryStringParameters'].get('action')
-    result = None
+    params = event.get('queryStringParameters') or {}
+    has_action = 'action' in params
     with get_db_connection() as conn:
-        if action == 'create':
-            # Example: expects name, date_of_birth, species in query params
-            params = event['queryStringParameters'] or {}
-            pet = Pet(
-                name=params.get('name', ''),
-                date_of_birth=params.get('date_of_birth', None),
-                species=params.get('species', ''),
-            )
-            pet_id = Pet.create(pet, conn)
-            result = {'pet_id': pet_id}
-            status = 'created'
-        elif action == 'read':
-            pet_id = int(event['queryStringParameters'].get('pet_id', 0))
-            pet = Pet.get(pet_id, conn)
-            result = pet.__dict__ if pet else None
-            status = 'read'
-        elif action == 'update':
-            params = event['queryStringParameters'] or {}
-            pet = Pet(
-                pet_id=int(params.get('pet_id', 0)),
-                name=params.get('name', ''),
-                date_of_birth=params.get('date_of_birth', None),
-                species=params.get('species', ''),
-            )
-            Pet.update(pet, conn)
-            result = {'pet_id': pet.pet_id}
-            status = 'updated'
-        elif action == 'delete':
-            pet_id = int(event['queryStringParameters'].get('pet_id', 0))
-            Pet.delete(pet_id, conn)
-            result = {'pet_id': pet_id}
-            status = 'deleted'
+        if has_action:
+            action = event['queryStringParameters'].get('action')
+            result = None
+            if action == 'create':
+                result = handle_create(event, conn)
+            elif action == 'read':
+                result = handle_read(event, conn)
+            elif action == 'update':
+                result = handle_update(event, conn)
+            elif action == 'delete':
+                result = handle_delete(event, conn)
         else:
-            pets = Pet.list_all(conn)
-            result = [pet.__dict__ for pet in pets]
-            status = 'listed'
-    response = {
-        "statusCode": 200,
-        "body": json.dumps({
-            "action": action,
-            "status": status,
-            "result": result
-        }, default=str)
-    }
-    return response
+            result = handle_list(conn)
+        response = {
+            "statusCode": 200,
+            "body": json.dumps(result, default=str)
+        }
+        return response

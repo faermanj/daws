@@ -1,4 +1,4 @@
-# project
+# Pet API Serverless - Python - MySQL
 
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
@@ -59,7 +59,7 @@ You can find your API Gateway Endpoint URL in the output values displayed after 
 Build your application with the `sam build --use-container` command.
 
 ```bash
-project$ sam build --use-container
+sam build --use-container
 ```
 
 The SAM CLI installs dependencies defined in `project/requirements.txt`, creates a deployment package, and saves it in the `.aws-sam/build` folder.
@@ -69,14 +69,14 @@ Test a single function by invoking it directly with a test event. An event is a 
 Run functions locally and invoke them with the `sam local invoke` command.
 
 ```bash
-project$ sam local invoke ProjectFunction --event events/event.json
+sam local invoke ProjectFunction --event events/event.json
 ```
 
 The SAM CLI can also emulate your application's API. Use the `sam local start-api` to run the API locally on port 3000.
 
 ```bash
-project$ sam local start-api
-project$ curl http://localhost:3000/
+sam local start-api
+curl http://localhost:3000/
 ```
 
 The SAM CLI reads the application template to determine the API's routes and the functions that they invoke. The `Events` property on each function's definition includes the route and method for each path.
@@ -110,12 +110,12 @@ You can find more information and examples about filtering Lambda function logs 
 Tests are defined in the `tests` folder in this project. Use PIP to install the test dependencies and run tests.
 
 ```bash
-project$ pip install -r tests/requirements.txt --user
+pip install -r tests/requirements.txt --user
 # unit test
-project$ python -m pytest tests/unit -v
+python -m pytest tests/unit -v
 # integration test, requiring deploying the stack first.
 # Create the env variable AWS_SAM_STACK_NAME with the name of the stack we are testing
-project$ AWS_SAM_STACK_NAME="project" python -m pytest tests/integration -v
+AWS_SAM_STACK_NAME="project" python -m pytest tests/integration -v
 ```
 
 ## Cleanup
@@ -147,7 +147,7 @@ curl -s "$URL" | jq
 curl -s "$URL/?action=create&name=Juan&species=horse&date_of_birth=2025-01-01" | jq 
 
 # Read
-curl -s "$URL/?action=read&pet_id=1" | jq 
+curl -s "$URL/?action=read&pet_id=4" | jq 
 
 # Update
 curl -s "$URL/?action=update&pet_id=2&name=Pitucho" | jq 

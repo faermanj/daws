@@ -7,7 +7,12 @@ import pymysql
 
 @dataclass
 class Pet:
-
+    pet_id: int = None
+    name: str = ""
+    date_of_birth: date = None
+    species: str = ""
+    picture_files: List[str] = field(default_factory=list)
+    
     @classmethod
     def from_row(cls, row, conn=None):
         """Create a Pet instance from a DB row, including picture_files if conn is provided."""
@@ -16,18 +21,14 @@ class Pet:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT file_name FROM pictures WHERE pet_id=%s", (row['pet_id'],))
                 picture_files = [r['file_name'] for r in cursor.fetchall()]
-        return cls(
-            pet_id=row['pet_id'],
-            name=row['name'],
-            date_of_birth=row['date_of_birth'],
-            species=row['species'],
-            picture_files=picture_files
-        )
-    pet_id: int = None
-    name: str = ""
-    date_of_birth: date = None
-    species: str = ""
-    picture_files: List[str] = field(default_factory=list)
+                return cls(
+                    pet_id=row['pet_id'],
+                    name=row['name'],
+                    date_of_birth=row['date_of_birth'],
+                    species=row['species'],
+                    picture_files=picture_files
+                )
+
 
     @staticmethod
     def create_table(conn):
