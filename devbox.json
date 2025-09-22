@@ -6,11 +6,10 @@
     "python313Packages.cfn-lint@latest",
     "nodejs@latest",
     "nodePackages.aws-cdk@latest",
-    "mysql-client@latest",
     "jq@latest",
     "aws-sam-cli@latest",
-    "mysql@latest",
     "k6@latest",
+    "mysql-client@latest",
     "cowsay@latest"
   ],
   "shell": {
