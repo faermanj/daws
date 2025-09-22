@@ -181,6 +181,34 @@
       "last_modified": "2025-06-20T02:24:11Z",
       "resolved": "github:NixOS/nixpkgs/076e8c6678d8c54204abcb4b1b14c366835a58bb?lastModified=1750386251&narHash=sha256-1ovgdmuDYVo5OUC5NzdF%2BV4zx2uT8RtsgZahxidBTyw%3D"
     },
+    "glibcLocales@latest": {
+      "last_modified": "2025-07-28T17:09:23Z",
+      "resolved": "github:NixOS/nixpkgs/648f70160c03151bc2121d179291337ad6bc564b#glibcLocales",
+      "source": "devbox-search",
+      "version": "2.40-66",
+      "systems": {
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3qf3dikps0lyifxs01mibkb019gzwfka-glibc-locales-2.40-66",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/3qf3dikps0lyifxs01mibkb019gzwfka-glibc-locales-2.40-66"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/f01i3lw7r2mcyin7pfm6ww3sdyrpy9mb-glibc-locales-2.40-66",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/f01i3lw7r2mcyin7pfm6ww3sdyrpy9mb-glibc-locales-2.40-66"
+        }
+      }
+    },
     "jq@latest": {
       "last_modified": "2025-08-12T09:17:37Z",
       "resolved": "github:NixOS/nixpkgs/372d9eeeafa5b15913201e2b92e8e539ac7c64d1#jq",
@@ -297,9 +325,64 @@
         }
       }
     },
+    "k6@latest": {
+      "last_modified": "2025-07-28T17:09:23Z",
+      "resolved": "github:NixOS/nixpkgs/648f70160c03151bc2121d179291337ad6bc564b#k6",
+      "source": "devbox-search",
+      "version": "1.1.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9v7wwjhfa835bj253zi1v34ahgr3l511-k6-1.1.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/9v7wwjhfa835bj253zi1v34ahgr3l511-k6-1.1.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/pm9acvzl7v3az71g7c2pn5j4p4ycdnn0-k6-1.1.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/pm9acvzl7v3az71g7c2pn5j4p4ycdnn0-k6-1.1.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/rzwf78nv2hx5rqhqmx06pimsdbpmkn8v-k6-1.1.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/rzwf78nv2hx5rqhqmx06pimsdbpmkn8v-k6-1.1.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/kkc2lbs15f1wnkwy9ir8lcp1lg2hgnw6-k6-1.1.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/kkc2lbs15f1wnkwy9ir8lcp1lg2hgnw6-k6-1.1.0"
+        }
+      }
+    },
     "mysql-client@latest": {
       "last_modified": "2023-02-24T09:01:09Z",
       "resolved": "github:NixOS/nixpkgs/7d0ed7f2e5aea07ab22ccb338d27fbe347ed2f11#mysql-client",
+      "source": "devbox-search",
+      "version": "10.6.12"
+    },
+    "mysql@latest": {
+      "last_modified": "2023-02-24T09:01:09Z",
+      "plugin_version": "0.0.4",
+      "resolved": "github:NixOS/nixpkgs/7d0ed7f2e5aea07ab22ccb338d27fbe347ed2f11#mysql",
       "source": "devbox-search",
       "version": "10.6.12"
     },

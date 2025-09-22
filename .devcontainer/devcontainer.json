@@ -8,14 +8,16 @@
         "ghcr.io/customink/codespaces-features/sam-cli:1": {},
         "ghcr.io/devcontainers-extra/features/aws-cdk:2": {},
         "ghcr.io/devcontainers-extra/features/amplify-cli:2": {},
-        "ghcr.io/devcontainers-extra/features/mysql-homebrew:1": {}
+        "ghcr.io/devcontainers-extra/features/mysql-homebrew:1": {},
+        "ghcr.io/grafana/devcontainer-features/k6:1": {}
     },
     "postCreateCommand": "devbox install",
     "customizations": {
         "vscode": {
             "extensions": [
                 "aws-scripting-guy.cform",
-                "ms-python.python"
+                "ms-python.python",
+                "k6.k6"
             ]
         }
     }

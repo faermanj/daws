@@ -9,7 +9,8 @@
     "mysql-client@latest",
     "jq@latest",
     "aws-sam-cli@latest",
-    "mysql@latest"
+    "mysql@latest",
+    "k6@latest"
   ],
   "shell": {
     "init_hook": [
