@@ -14,6 +14,7 @@
         "ghcr.io/grafana/devcontainer-features/k6:1": {},
         "ghcr.io/joshspicer/more-features/cowsay:1": {}
     },
+    "postCreateCommand": "./scripts/postCreateCommand.sh",
     "customizations": {
         "vscode": {
             "extensions": [
