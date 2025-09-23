@@ -12,7 +12,6 @@
         "ghcr.io/devcontainers-extra/features/aws-cdk:2": {},
         "ghcr.io/devcontainers-extra/features/amplify-cli:2": {},
         "ghcr.io/grafana/devcontainer-features/k6:1": {},
-        "ghcr.io/devcontainers/features/hugo:1": {},
         "ghcr.io/joshspicer/more-features/cowsay:1": {}
     },
     "customizations": {
