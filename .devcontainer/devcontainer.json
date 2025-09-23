@@ -1,29 +1,27 @@
 {
-    "name": "DAWS Dev Container",
-    "image": "mcr.microsoft.com/devcontainers/base",
-    "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-        "ghcr.io/devcontainers/features/java:1": {},
-        "ghcr.io/devcontainers-extra/features/maven-sdkman:2": {},
-        "ghcr.io/devcontainers-extra/features/quarkus-sdkman:2": {},
-        "ghcr.io/devcontainers/features/python:1": {},
-        "ghcr.io/devcontainers/features/aws-cli:1": {},
-        "ghcr.io/customink/codespaces-features/sam-cli:1": {},
-        "ghcr.io/devcontainers-extra/features/aws-cdk:2": {},
-        "ghcr.io/devcontainers-extra/features/amplify-cli:2": {},
-        "ghcr.io/grafana/devcontainer-features/k6:1": {},
-        "ghcr.io/joshspicer/more-features/cowsay:1": {}
-    },
-    "postCreateCommand": "./scripts/postCreateCommand.sh",
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "aws-scripting-guy.cform",
-                "vscjava.vscode-java-pack",
-                "redhat.java",
-                "ms-python.python",
-                "k6.k6"
-            ]
-        }
+  "name": "DAWS Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/base",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/python:1": {},
+    "ghcr.io/devcontainers/features/aws-cli:1": {},
+    "ghcr.io/customink/codespaces-features/sam-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/aws-cdk:2": {},
+    "ghcr.io/devcontainers-extra/features/amplify-cli:2": {},
+    "ghcr.io/grafana/devcontainer-features/k6:1": {},
+    "ghcr.io/ebaskoro/devcontainer-features/sdkman:1": {},
+    "ghcr.io/joshspicer/more-features/cowsay:1": {}
+  },
+  "postCreateCommand": "./scripts/postCreateCommand.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "aws-scripting-guy.cform",
+        "vscjava.vscode-java-pack",
+        "redhat.java",
+        "ms-python.python",
+        "k6.k6"
+      ]
     }
+  }
 }
