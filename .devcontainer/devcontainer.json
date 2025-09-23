@@ -17,8 +17,7 @@
         "aws-scripting-guy.cform",
         "vscjava.vscode-java-pack",
         "redhat.java",
-        "ms-python.python",
-        "k6.k6"
+        "ms-python.python"
       ]
     }
   }
