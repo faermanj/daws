@@ -1,7 +1,7 @@
 # aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
 # aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
 
-Description: Aurora Serverless MySQL
+Description: Aurora Serverless
 
 Parameters:
   EnvId:
@@ -36,6 +36,18 @@ Parameters:
     MaxLength: 64
     AllowedPattern: "^[a-zA-Z][a-zA-Z0-9_]*$"
 
+  DBEngine:
+    Type: String
+    Default: aurora-mysql
+    AllowedValues:
+      - aurora-mysql
+      - aurora-postgresql
+    Description: The database engine to use
+  
+  DBInstanceClass:
+    Type: String
+    Default: db.serverless
+
 Resources:
   DBClientsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -56,7 +68,7 @@ Resources:
   DbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Aurora MySQL SG
+      GroupDescription: Aurora SG
       VpcId:
         Fn::ImportValue: !Sub "${EnvId}-VpcId"
       SecurityGroupIngress:
@@ -74,7 +86,7 @@ Resources:
   DbSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: Subnets for Aurora MySQL
+      DBSubnetGroupDescription: Subnets for Aurora
       SubnetIds:
         - Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnet1Id"
         - Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnet2Id"
@@ -86,7 +98,7 @@ Resources:
   DbCluster:
     Type: AWS::RDS::DBCluster
     Properties:
-      Engine: aurora-mysql
+      Engine: !Ref DBEngine
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       DBSubnetGroupName: !Ref DbSubnetGroup
@@ -94,7 +106,7 @@ Resources:
       DatabaseName: !Ref DatabaseName
       ServerlessV2ScalingConfiguration:
         MinCapacity: 0
-        MaxCapacity: 8
+        MaxCapacity: 16
       Tags:
         - Key: EnvId
           Value: !Ref EnvId
@@ -103,8 +115,8 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       DBClusterIdentifier: !Ref DbCluster
-      DBInstanceClass: db.serverless
-      Engine: aurora-mysql
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: !Ref DBEngine
       PubliclyAccessible: false
       Tags:
         - Key: EnvId
@@ -131,8 +143,8 @@ Outputs:
     Description: Writer DB instance identifier
     Value: !Ref DbInstanceWriter
 
-  DBConnectCLI:
-    Description: Command to connect to the DB with host and user
+  MySQLConnectCLI:
+    Description: MySQL command to connect to the DB with host and user
     Value: !Sub "mysql -h '${DbInstanceWriter.Endpoint.Address}' -u '${DBUsername}' -p"
 
   DBHost:
@@ -164,4 +176,10 @@ Outputs:
     Value: !Ref DBClientsSecurityGroup
     Export:
       Name: !Sub "${EnvId}-DBClientsSecurityGroupId"
+
+  JDBCUrl:
+    Description: JDBC connection URL
+    Value: !Sub "jdbc:mysql://${DbInstanceWriter.Endpoint.Address}:3306/${DatabaseName}?useSSL=false"
+    Export:
+      Name: !Sub "${EnvId}-JDBCUrl"
 

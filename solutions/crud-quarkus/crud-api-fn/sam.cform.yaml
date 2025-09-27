@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Serverless Quarkus HTTP - crud-api-fn
+
+Globals:
+  Api:
+    EndpointConfiguration: REGIONAL
+    BinaryMediaTypes:
+      - "*/*"
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    
+Resources:
+  CrudApiFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
+      Runtime: java21
+      CodeUri: target/function.zip
+      MemorySize: 1024
+      Policies: AWSLambdaBasicExecutionRole
+      Timeout: 60
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub '${EnvId}-DBClientsSecurityGroupId'
+        SubnetIds:
+          - Fn::ImportValue: !Sub '${EnvId}-PublicSubnet1Id'
+          - Fn::ImportValue: !Sub '${EnvId}-PublicSubnet2Id'
+          - Fn::ImportValue: !Sub '${EnvId}-PublicSubnet3Id'
+      Environment:
+        Variables:
+            QUARKUS_DATASOURCE_JDBC_URL: 
+              Fn::ImportValue: !Sub "${EnvId}-JDBCUrl"
+            QUARKUS_DATASOURCE_USERNAME: 
+              Fn::ImportValue: !Sub "${EnvId}-DBUsername"
+            QUARKUS_DATASOURCE_PASSWORD: 
+              Fn::ImportValue: !Sub "${EnvId}-DBPassword"
+      Events:
+        HttpApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+Outputs:
+  CrudApiFnApi:
+    Description: URL for application
+    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/pets'
+    Export:
+      Name: CrudApiFnApi
