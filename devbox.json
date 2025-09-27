@@ -8,14 +8,8 @@
     "nodePackages.aws-cdk@latest",
     "jq@latest",
     "aws-sam-cli@latest",
-<<<<<<< HEAD
-    "k6@latest",
-    "mysql-client@latest",
-    "cowsay@latest"
-=======
     "quarkus@latest",
     "maven@latest"
->>>>>>> e619d97 (feat: Initialize CRUD API with Quarkus)
   ],
   "shell": {
     "init_hook": ["echo 'Welcome to devbox!'"],
