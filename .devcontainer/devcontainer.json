@@ -11,6 +11,9 @@
     "ghcr.io/customink/codespaces-features/sam-cli:1": {},
     "ghcr.io/devcontainers-extra/features/aws-cdk:2": {},
     "ghcr.io/devcontainers-extra/features/amplify-cli:2": {},
+    "ghcr.io/rails/devcontainer/features/postgres-client:1.1.3": {},
+    "ghcr.io/devcontainers/features/mysql-client:1": {},
+    "ghcr.io/devcontainers/features/quarkus:1": {},
     "ghcr.io/joshspicer/more-features/cowsay:1": {}
   },
   "postCreateCommand": "./scripts/postCreateCommand.sh",
