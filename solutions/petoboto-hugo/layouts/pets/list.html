@@ -1,0 +1,28 @@
+{{ define "main" }}
+  {{ $css := resources.Get "css/pets.css" | resources.Minify | resources.Fingerprint }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+
+  <h1 class="pets-title mb-6">Pets</h1>
+
+  <div class="pets-wrap">
+    {{ range .Pages.ByTitle }}
+      {{ $page := . }}
+      {{ $images := $page.Resources.ByType "image" }}
+      {{ $covers := where $images ".Params.cover" true }}
+      {{ $cover  := cond (gt (len $covers) 0) (index $covers 0) (index $images 0) }}
+
+      <a href="{{ $page.RelPermalink }}" class="pet-card">
+        <div class="pet-media">
+          {{ with $cover }}
+            {{ $thumb := .Fit "900x900 jpg smart" }}
+            <img src="{{ $thumb.RelPermalink }}" alt="{{ $page.Title }}" loading="lazy">
+          {{ end }}
+        </div>
+        <div class="pet-meta">
+          <div class="pet-title">{{ $page.Title }}</div>
+          {{ with $page.Description }}<p class="pet-desc">{{ . }}</p>{{ end }}
+        </div>
+      </a>
+    {{ end }}
+  </div>
+{{ end }}

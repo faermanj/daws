@@ -1,0 +1,16 @@
+.pets-title { 
+    font-size: 2em;
+    padding-bottom: 20px;
+}
+.pets-wrap { column-gap: 16px; }
+@media (min-width: 640px){ .pets-wrap { column-count: 2; } }
+@media (min-width: 1024px){ .pets-wrap { column-count: 3; } }
+
+.pet-card { break-inside: avoid; margin: 0 0 16px; display: block; text-decoration: none; color: inherit; }
+.pet-media { border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+.pet-media img { width: 100%; height: auto; display: block; transition: transform .25s ease; }
+.pet-card:hover .pet-media img { transform: scale(1.02); }
+
+.pet-meta { padding: 8px 2px 2px; }
+.pet-title { font-size: 1.35rem; font-weight: 600; margin: 6px 0 2px; }
+.pet-desc  { font-size: .92rem; opacity: .8; margin: 0; }

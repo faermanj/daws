@@ -1,0 +1,42 @@
+{{ define "main" }}
+  <style>
+    .hdr h1 { font-size: 2.4rem; line-height: 1.1; margin: 0 0 8px; }
+    .hdr .subtitle { font-size: 1.25rem; opacity: .85; margin: 0 0 16px; }
+
+    .pics { column-gap: 12px; }
+    @media (min-width:640px){ .pics{ column-count:2 } }
+    @media (min-width:1024px){ .pics{ column-count:3 } }
+    .pic { break-inside: avoid; margin: 0 0 12px; }
+    .pic img { width: 100%; height: auto; display: block; }
+  </style>
+
+  <header class="hdr">
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="subtitle">{{ . }}</p>{{ end }}
+  </header>
+  {{ if .Content }}{{ .Content }}{{ end }}
+
+  {{ $images := .Resources.ByType "image" }}
+  {{ if gt (len $images) 0 }}
+    <style>
+      .pics { column-gap: 12px; }
+      @media (min-width:640px){ .pics{ column-count:2 } }
+      @media (min-width:1024px){ .pics{ column-count:3 } }
+      .pic { break-inside: avoid; margin: 0 0 12px; }
+      .pic img { width: 100%; height: auto; display: block; }
+    </style>
+
+    <div class="pics">
+      {{ range $images }}
+        {{ $r := .Resize "900x" }}  {{/* scale down for speed; keeps aspect ratio */}}
+        <figure class="pic">
+          <img src="{{ $r.RelPermalink }}" alt="{{ $.Title }}" loading="lazy">
+        </figure>
+      {{ end }}
+    </div>
+  {{ else }}
+    <p>No images yet.</p>
+  {{ end }}
+
+  <p><a href="/pets/">← Back to Pets</a></p>
+{{ end }}

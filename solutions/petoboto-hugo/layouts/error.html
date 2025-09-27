@@ -1,0 +1,16 @@
+{{ define "main" }}
+  <style>
+    .err { max-width: 720px; margin: 6rem auto; text-align: center; }
+    .err h1 { font-size: 2.25rem; margin: 0 0 .5rem; }
+    .err p  { font-size: 1.05rem; opacity: .9; margin: 0 0 1rem; }
+    .err a  { text-decoration: underline; }
+  </style>
+
+  <div class="err">
+    <h1>{{ .Title | default "Something went wrong" }}</h1>
+    {{ with .Content }}{{ . }}{{ else }}
+      <p>Sorry—there was an error.</p>
+    {{ end }}
+    <p><a href="/">Go back home</a></p>
+  </div>
+{{ end }}

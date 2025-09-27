@@ -1,0 +1,3 @@
+[submodule "solutions/petoboto-hugo/themes/gallery"]
+	path = solutions/petoboto-hugo/themes/gallery
+	url = https://github.com/nicokaiser/hugo-theme-gallery.git

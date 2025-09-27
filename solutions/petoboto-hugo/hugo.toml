@@ -1,0 +1,6 @@
+title = "petoboto-hugo"
+languageCode = "en-us"
+theme = "gallery"
+
+# optional: quiet warnings if you’re not using taxonomies
+disableKinds = ["taxonomy"]
