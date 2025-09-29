@@ -136,4 +136,4 @@ Outputs:
     Value: !GetAtt WebServerInstance.PublicIp
   WebURL:
     Description: URL to access the web server
-    Value: !Sub "http://${WebServerInstance.PublicDnsName}:8080/"
+    Value: !Sub "http://${WebServerInstance.PublicDnsName}:8080/pets/"
