@@ -9,7 +9,9 @@
     "jq@latest",
     "aws-sam-cli@latest",
     "quarkus@latest",
-    "maven@latest"
+    "maven@latest",
+    "hugo@latest",
+    "jreleaser-cli@latest"
   ],
   "shell": {
     "init_hook": ["echo 'Welcome to devbox!'"],
