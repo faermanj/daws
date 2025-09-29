@@ -89,9 +89,9 @@ Resources:
           if [ ! -d "$REPO_DIR" ]; then
               git clone https://github.com/faermanj/daws.git "$REPO_DIR"
           fi
-          echo "Starting crud-quarkus/crud-api"
           APP_DIR="$REPO_DIR/solutions/crud-quarkus/dist/quarkus-app"
           cd "$APP_DIR"
+          echo "Setting variables to [$(pwd)]"
           # Sets environment variables for the Quarkus application
           cat > $APP_DIR/.envrc <<'EOF'
           export QUARKUS_DATASOURCE_JDBC_URL='${QuarkusDatasourceJdbcUrl}'
@@ -102,11 +102,11 @@ Resources:
           chmod 600 .envrc
           # Start the Quarkus application as ec2-user
           sudo -u ec2-user bash -lc '
-            cd 
+            cd "'"$APP_DIR"'"
+            echo "Starting crud-api as [$(whoami)] in dir [$(pwd)]"
             set -aex
-            source $APP_DIR/.envrc
-            set +a
-            nohup java -jar $APP_DIR/quarkus-run.jar > $APP_DIR/quarkus-run.log.txt 2>&1 &
+            source "$APP_DIR/.envrc"
+            nohup java -jar "$APP_DIR/quarkus-run.jar" > "$APP_DIR/quarkus-run.log.txt" 2>&1 &
             disown
           '
           echo "Done user-data.sh script."
