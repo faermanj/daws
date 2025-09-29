@@ -1,0 +1,137 @@
+# DB_HOST=$(aws cloudformation describe-stacks --stack-name rds-mysql-sls --query "Stacks[0].Outputs[?OutputKey=='DBHost'].OutputValue" --output text )
+# DB_NAME=project
+# QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://$DB_HOST/$DB_NAME
+# QUARKUS_DATASOURCE_USERNAME=admin
+# QUARKUS_DATASOURCE_PASSWORD=Masterkey123
+# echo $QUARKUS_DATASOURCE_JDBC_URL
+# aws cloudformation deploy --stack-name crud-api-ec2 --template-file ec2.cform.yaml --parameter-overrides QuarkusDatasourceJdbcUrl="$QUARKUS_DATASOURCE_JDBC_URL" QuarkusDatasourceUsername="$QUARKUS_DATASOURCE_USERNAME" QuarkusDatasourcePassword="$QUARKUS_DATASOURCE_PASSWORD" --capabilities CAPABILITY_NAMED_IAM
+# aws cloudformation delete-stack --stack-name crud-api-ec2 && aws cloudformation wait stack-delete-complete --stack-name crud-api-ec2
+Description: CRUD API EC2 instance
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Tag value for Application
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: "default"
+
+  GitHubUser:
+    Description: GitHub username owning the repo
+    Type: String
+    Default: "faermanj"
+
+  GitHubRepo:
+    Description: GitHub repository name
+    Type: String
+    Default: "daws"
+  
+  InstanceType:
+    Type: String
+    Default: t4g.small
+    ConstraintDescription: Must be a valid and available EC2 instance type.
+
+  QuarkusDatasourceJdbcUrl:
+    Description: JDBC URL for the Quarkus application
+    Type: String
+
+  QuarkusDatasourceUsername:
+    Description: Username for the Quarkus application
+    Type: String
+
+  QuarkusDatasourcePassword:
+    Description: Password for the Quarkus application
+    Type: String
+
+Resources:
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId: 
+        Fn::ImportValue: !Sub '${EnvId}-PublicSubnet1Id'
+      ImageId: 
+        Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}"
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+        - Fn::ImportValue: 
+            !Sub "${EnvId}-DBClientsSecurityGroupId"
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvId}-quarkus-app"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          echo "Running user-data.sh script..."
+          # Install Java if not present (prefer Amazon Corretto headless)
+          if ! command -v java >/dev/null 2>&1; then
+            sudo rpm --import https://rpm.corretto.aws/corretto.key
+            sudo curl -L https://rpm.corretto.aws/corretto.repo -o /etc/yum.repos.d/corretto.repo
+            sudo yum install -y java-25-amazon-corretto-headless
+          fi
+          java -version
+          # Install Maven if not present
+          if ! command -v mvn >/dev/null 2>&1; then
+              sudo yum install -y maven
+          fi
+          mvn -version
+          # Install Git if not present
+          if ! command -v git >/dev/null 2>&1; then
+              sudo yum install -y git
+          fi
+          git --version
+          # Clone the repository if not already present
+          REPO_DIR="/home/ec2-user/daws"
+          if [ ! -d "$REPO_DIR" ]; then
+              git clone https://github.com/faermanj/daws.git "$REPO_DIR"
+          fi
+          echo "Starting crud-quarkus/crud-api"
+          APP_DIR="$REPO_DIR/solutions/crud-quarkus/dist/quarkus-app"
+          cd "$APP_DIR"
+          # Sets environment variables for the Quarkus application
+          cat > $APP_DIR/.envrc <<'EOF'
+          export QUARKUS_DATASOURCE_JDBC_URL='${QuarkusDatasourceJdbcUrl}'
+          export QUARKUS_DATASOURCE_USERNAME='${QuarkusDatasourceUsername}'
+          export QUARKUS_DATASOURCE_PASSWORD='${QuarkusDatasourcePassword}'
+          EOF
+          chown -R ec2-user:ec2-user /home/ec2-user
+          chmod 600 .envrc
+          # Start the Quarkus application as ec2-user
+          sudo -u ec2-user bash -lc '
+            cd 
+            set -aex
+            source $APP_DIR/.envrc
+            set +a
+            nohup java -jar $APP_DIR/quarkus-run.jar > $APP_DIR/quarkus-run.log.txt 2>&1 &
+            disown
+          '
+          echo "Done user-data.sh script."
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP and SSH access
+      VpcId:
+        Fn::ImportValue: 
+          !Sub "${EnvId}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  InstancePublicIP:
+    Description: Public IP of the EC2 instance
+    Value: !GetAtt WebServerInstance.PublicIp
+  WebURL:
+    Description: URL to access the web server
+    Value: !Sub "http://${WebServerInstance.PublicDnsName}:8080/"
