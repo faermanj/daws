@@ -34,6 +34,11 @@ public class PetResource {
         Pet.create("Taco", BIRD, List.of("taco-1.png", "taco-2.png", "taco-3.png"));
     }
 
+    //TODO: add a comment for each method, including an CURL line of how to invoke it as shortly as possible, use http://127.0.0.1:8080/pets as base url
+    
+    /** Lists all pets.
+     * curl http://127.0.0.1:8080/pets
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Pet> getList() {
@@ -41,6 +46,9 @@ public class PetResource {
         return result;
     }
 
+    /** Retrieves a pet by id.
+     * curl http://127.0.0.1:8080/pets/1
+     */
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -50,6 +58,9 @@ public class PetResource {
         return pet;
     }
 
+    /** Creates a new pet.
+     * curl -X POST http://127.0.0.1:8080/pets -H 'Content-Type: application/json' -d '{"name":"Sushi","kind":"DOG"}'
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -60,6 +71,9 @@ public class PetResource {
         return Response.status(Status.CREATED).entity(pet).build();
     }
 
+    /** Updates an existing pet.
+     * curl -X PUT http://127.0.0.1:8080/pets/1 -H 'Content-Type: application/json' -d '{"name":"Sushi","kind":"DOG"}'
+     */
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -74,6 +88,9 @@ public class PetResource {
         return pet;
     }
 
+    /** Deletes a pet by id.
+     * curl -X DELETE http://127.0.0.1:8080/pets/1
+     */
     @DELETE
     @Path("/{id}")
     @Transactional
