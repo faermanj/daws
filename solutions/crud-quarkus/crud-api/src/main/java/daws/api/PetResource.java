@@ -19,6 +19,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.BadRequestException;
 
 @ApplicationScoped
 @Path("/pets")
@@ -37,7 +38,7 @@ public class PetResource {
     //TODO: add a comment for each method, including an CURL line of how to invoke it as shortly as possible, use http://127.0.0.1:8080/pets as base url
     
     /** Lists all pets.
-     * curl http://127.0.0.1:8080/pets
+     * curl -s http://127.0.0.1:8080/pets | jq 
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -47,7 +48,7 @@ public class PetResource {
     }
 
     /** Retrieves a pet by id.
-     * curl http://127.0.0.1:8080/pets/1
+     * curl -s http://127.0.0.1:8080/pets/1 | jq
      */
     @GET
     @Path("/{id}")
@@ -59,16 +60,36 @@ public class PetResource {
     }
 
     /** Creates a new pet.
-     * curl -X POST http://127.0.0.1:8080/pets -H 'Content-Type: application/json' -d '{"name":"Sushi","kind":"DOG"}'
+     * curl -X POST http://127.0.0.1:8080/pets -H 'Content-Type: application/json' -d '{"name":"Sushi","species":"DOG"}'
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response create(Pet pet) {
-        pet.id = null; 
+    public Response create(CreatePetRequest request) {
+        if (request == null || request.name == null || request.species == null
+                || request.name.isBlank() || request.species.isBlank()) {
+            throw new BadRequestException("name and species are required");
+        }
+
+        Pet pet = new Pet();
+        pet.setName(request.name);
+        pet.setKind(parseSpecies(request.species));
         pet.persist();
+
         return Response.status(Status.CREATED).entity(pet).build();
+    }
+
+    private PetKind parseSpecies(String species) {
+        String normalized = species.trim().toUpperCase();
+        if (normalized.isEmpty()) {
+            throw new BadRequestException("species must not be empty");
+        }
+        try {
+            return PetKind.valueOf(normalized);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("unknown species " + species);
+        }
     }
 
     /** Updates an existing pet.
@@ -99,5 +120,10 @@ public class PetResource {
         if (pet == null) throw new NotFoundException();
         pet.delete();
         return Response.noContent().build();
+    }
+
+    public static class CreatePetRequest {
+        public String name;
+        public String species;
     }
 }

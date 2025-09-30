@@ -1,3 +1,5 @@
+# aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
+# aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
 # DB_HOST=$(aws cloudformation describe-stacks --stack-name rds-mysql-sls --query "Stacks[0].Outputs[?OutputKey=='DBHost'].OutputValue" --output text )
 # DB_NAME=project
 # QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://$DB_HOST/$DB_NAME
@@ -18,16 +20,6 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH access
     Type: AWS::EC2::KeyPair::KeyName
     Default: "default"
-
-  GitHubUser:
-    Description: GitHub username owning the repo
-    Type: String
-    Default: "faermanj"
-
-  GitHubRepo:
-    Description: GitHub repository name
-    Type: String
-    Default: "daws"
   
   InstanceType:
     Type: String
@@ -74,11 +66,6 @@ Resources:
             sudo yum install -y java-24-amazon-corretto-headless
           fi
           java -version
-          # Install Maven if not present
-          if ! command -v mvn >/dev/null 2>&1; then
-              sudo yum install -y maven
-          fi
-          mvn -version
           # Install Git if not present
           if ! command -v git >/dev/null 2>&1; then
               sudo yum install -y git
@@ -87,7 +74,11 @@ Resources:
           # Clone the repository if not already present
           REPO_DIR="/home/ec2-user/daws"
           if [ ! -d "$REPO_DIR" ]; then
-              git clone https://github.com/faermanj/daws.git "$REPO_DIR"
+              git clone --depth 1 --filter=blob:none --no-checkout https://github.com/faermanj/daws.git "$REPO_DIR"
+              cd "$REPO_DIR"
+              git sparse-checkout init --cone
+              git sparse-checkout set solutions/crud-quarkus/dist/quarkus-app
+              git checkout main
           fi
           APP_DIR="/home/ec2-user/daws/solutions/crud-quarkus/dist/quarkus-app"
           cd "$APP_DIR"

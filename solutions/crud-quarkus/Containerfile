@@ -1,0 +1,74 @@
+# REPO_NAME="crud-api" 
+# IMAGE_TAG="0.0.1"
+# LOCAL_IMAGE="${REPO_NAME}:${IMAGE_TAG}"
+# aws ecr-public create-repository --repository-name "crud-api"  
+# REGISTRY_URI=$(aws ecr-public describe-registries --query 'registries[0].registryUri' --output text)
+# echo $REGISTRY_URI
+# aws ecr-public get-login-password | docker login --username AWS --password-stdin "${REGISTRY_URI}"
+# docker build -f Containerfile --no-cache --progress=plain -t crud-api:0.0.1 .
+# docker tag "${LOCAL_IMAGE}" "${REGISTRY_URI}/${REPO_NAME}:${IMAGE_TAG}"
+# docker push "${REGISTRY_URI}/${REPO_NAME}:${IMAGE_TAG}"
+# ALIAS=$(aws ecr-public describe-registries --query 'registries[0].registryUri' --output text | sed 's#public\.ecr\.aws/##')
+# echo "https://gallery.ecr.aws/${ALIAS}/${REPO_NAME}"
+
+FROM redhat/ubi10:latest AS build
+
+# Root level
+USER root
+RUN dnf update -y
+RUN dnf install -y zip unzip
+
+## Create User
+ARG USERNAME=container-user
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+RUN groupadd --gid $USER_GID $USERNAME 
+RUN useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -d "/home/$USERNAME"
+
+# User level
+USER $USERNAME
+ENV HOME="/home/$USERNAME"
+
+## Setup JDK
+ARG GRAALVM_URL="https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-x64_bin.tar.gz"
+RUN bash -c "curl -fsSL $GRAALVM_URL -o /tmp/graalvm.tar.gz \
+&& mkdir -p $HOME/graalvm \
+&& tar -xzf /tmp/graalvm.tar.gz -C $HOME/graalvm --strip-components=1 \
+&& rm /tmp/graalvm.tar.gz" 
+ENV JAVA_HOME="${HOME}/graalvm"
+ENV PATH="$JAVA_HOME/bin:${PATH}"
+RUN java -version
+
+
+## Copy source code
+RUN mkdir -p "/home/$USERNAME/src"
+WORKDIR "/home/$USERNAME/src"
+COPY --chown=$USERNAME  . .
+
+# Maven pre-build
+WORKDIR "/home/$USERNAME/src/crud-api"
+RUN ./mvnw  -B -ntp clean verify
+
+# Jlink pre-build
+ARG JAVA_MODULES="java.base,java.compiler,java.desktop,java.logging,java.management,java.naming,java.security.jgss,java.rmi,java.security.sasl,jdk.crypto.ec,java.sql,java.transaction.xa,java.xml,jdk.compiler,jdk.compiler,jdk.unsupported,java.net.http,org.graalvm.nativeimage,org.graalvm.word"
+RUN bash -c "jlink \
+    --add-modules $JAVA_MODULES \
+    --compress=zip-2 \
+    --no-header-files \
+    --no-man-pages \
+    --output /home/$USERNAME/jre"
+
+FROM redhat/ubi10:latest
+
+ARG USERNAME=container-user
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -d "/home/$USERNAME"
+
+ENV HOME="/home/$USERNAME"
+COPY --from=build --chown=$USERNAME "/home/$USERNAME/jre" "$HOME/jre"
+COPY --from=build --chown=$USERNAME  "/home/$USERNAME/src/crud-api/target" "$HOME/src/crud-api/target"
+USER $USERNAME
+WORKDIR $HOME
+ENTRYPOINT ["./jre/bin/java", "-jar", "./src/crud-api/target/quarkus-app/quarkus-run.jar"]

@@ -1,0 +1,147 @@
+# cloudformation/alb/deploy.sh
+# aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
+# aws cloudformation deploy --stack-name ecs-simple --capabilities CAPABILITY_NAMED_IAM --template-file cloudformation/ecs-simple/template.cform.yaml
+# DB_HOST=$(aws cloudformation describe-stacks --stack-name rds-mysql-sls --query "Stacks[0].Outputs[?OutputKey=='DBHost'].OutputValue" --output text )
+# DB_NAME=project
+# QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://$DB_HOST/$DB_NAME
+# QUARKUS_DATASOURCE_USERNAME=admin
+# QUARKUS_DATASOURCE_PASSWORD=Masterkey123
+# echo $QUARKUS_DATASOURCE_JDBC_URL
+# aws cloudformation deploy --stack-name ecs-crud-api --template-file solutions/crud-quarkus/crud-api.ecs.cform.yaml --capabilities CAPABILITY_NAMED_IAM --parameter-overrides QuarkusDatasourceJdbcUrl="$QUARKUS_DATASOURCE_JDBC_URL" QuarkusDatasourceUsername="$QUARKUS_DATASOURCE_USERNAME" QuarkusDatasourcePassword="$QUARKUS_DATASOURCE_PASSWORD" 
+
+Description: CrudAPI on ECS
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+  
+  Image:
+    Type: String
+    Default: public.ecr.aws/h7c5j0n2/crud-api:0.0.1
+    Description: Docker image for the CrudAPI 
+  
+  # TODO: pass quarkus datasource paramas to container env vars
+  QuarkusDatasourceJdbcUrl:
+    Description: JDBC URL for the Quarkus application
+    Type: String
+
+  QuarkusDatasourceUsername:
+    Description: Username for the Quarkus application
+    Type: String
+
+  QuarkusDatasourcePassword:
+    Description: Password for the Quarkus application
+    Type: String
+
+Resources:
+  ECSCrudAPITaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${EnvId}-CrudAPI"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "512"
+      Memory: "1024"
+      ExecutionRoleArn:
+        Fn::ImportValue: !Sub "${EnvId}-ExecutionRoleArn"
+      ContainerDefinitions:
+        - Name: ECSCrudAPI
+          Image: !Ref Image
+          PortMappings:
+            - ContainerPort: 8080
+              Protocol: tcp
+          Environment:
+            - Name: QUARKUS_DATASOURCE_JDBC_URL
+              Value: !Ref QuarkusDatasourceJdbcUrl
+            - Name: QUARKUS_DATASOURCE_USERNAME
+              Value: !Ref QuarkusDatasourceUsername
+            - Name: QUARKUS_DATASOURCE_PASSWORD
+              Value: !Ref QuarkusDatasourcePassword
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Fn::ImportValue: !Sub "${EnvId}-AppLogGroupName"
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+
+  ECSCrudAPISecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${EnvId}-CrudAPI Security Group"
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId:
+            Fn::ImportValue: !Sub "${EnvId}-ALBSecurityGroupId"
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
+
+  ECSCrudAPIService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub "${EnvId}-CrudAPI"
+      Cluster:
+        Fn::ImportValue: !Sub "${EnvId}-ECSClusterName"
+      LaunchType: FARGATE
+      DesiredCount: 1
+      TaskDefinition: !Ref ECSCrudAPITaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet1Id"
+            - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet2Id"
+            - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet3Id"
+          SecurityGroups:
+            - !Ref ECSCrudAPISecurityGroup
+            - Fn::ImportValue: 
+                !Sub "${EnvId}-DBClientsSecurityGroupId"
+      LoadBalancers:
+        - ContainerName: ECSCrudAPI
+          ContainerPort: 8080
+          TargetGroupArn: !Ref ECSCrudAPITargetGroup
+      EnableECSManagedTags: true
+      PropagateTags: SERVICE
+
+  ECSCrudAPITargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${EnvId}-CrudAPI"
+      Port: 8080
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /_hc
+      Matcher:
+        HttpCode: "200"
+
+  ECSListenerRuleCrudAPI:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: 
+        Fn::ImportValue: !Sub "${EnvId}-HttpsListenerArn"
+      Priority: 333
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /
+            - /*
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref ECSCrudAPITargetGroup
+
+Outputs:
+  ECSCrudAPITaskDefinitionRef:
+    Description: The Ref ECS Task Definition
+    Value: !Ref ECSCrudAPITaskDefinition
