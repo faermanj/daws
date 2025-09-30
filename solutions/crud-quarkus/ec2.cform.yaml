@@ -1,12 +1,19 @@
+# Dependencies:
 # aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
 # aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
+
+# Settings:
 # DB_HOST=$(aws cloudformation describe-stacks --stack-name rds-mysql-sls --query "Stacks[0].Outputs[?OutputKey=='DBHost'].OutputValue" --output text )
 # DB_NAME=project
 # QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://$DB_HOST/$DB_NAME
 # QUARKUS_DATASOURCE_USERNAME=admin
 # QUARKUS_DATASOURCE_PASSWORD=Masterkey123
 # echo $QUARKUS_DATASOURCE_JDBC_URL
-# aws cloudformation deploy --stack-name crud-api-ec2 --template-file ec2.cform.yaml --parameter-overrides QuarkusDatasourceJdbcUrl="$QUARKUS_DATASOURCE_JDBC_URL" QuarkusDatasourceUsername="$QUARKUS_DATASOURCE_USERNAME" QuarkusDatasourcePassword="$QUARKUS_DATASOURCE_PASSWORD" --capabilities CAPABILITY_NAMED_IAM
+
+# Deployment:
+# aws cloudformation deploy --stack-name crud-api-ec2 --template-file solutions/crud-quarkus/ec2.cform.yaml --parameter-overrides QuarkusDatasourceJdbcUrl="$QUARKUS_DATASOURCE_JDBC_URL" QuarkusDatasourceUsername="$QUARKUS_DATASOURCE_USERNAME" QuarkusDatasourcePassword="$QUARKUS_DATASOURCE_PASSWORD"
+
+# Cleanup:
 # aws cloudformation delete-stack --stack-name crud-api-ec2 && aws cloudformation wait stack-delete-complete --stack-name crud-api-ec2
 Description: CRUD API EC2 instance
 
@@ -36,6 +43,7 @@ Parameters:
 
   QuarkusDatasourcePassword:
     Description: Password for the Quarkus application
+    NoEcho: true
     Type: String
 
 Resources:
