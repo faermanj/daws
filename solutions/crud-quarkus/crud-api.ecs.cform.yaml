@@ -7,7 +7,7 @@
 # QUARKUS_DATASOURCE_USERNAME=admin
 # QUARKUS_DATASOURCE_PASSWORD=Masterkey123
 # echo $QUARKUS_DATASOURCE_JDBC_URL
-# aws cloudformation deploy --stack-name ecs-crud-api --template-file solutions/crud-quarkus/crud-api.ecs.cform.yaml --capabilities CAPABILITY_NAMED_IAM --parameter-overrides QuarkusDatasourceJdbcUrl="$QUARKUS_DATASOURCE_JDBC_URL" QuarkusDatasourceUsername="$QUARKUS_DATASOURCE_USERNAME" QuarkusDatasourcePassword="$QUARKUS_DATASOURCE_PASSWORD" 
+# aws cloudformation deploy --stack-name ecs-crud-api --template-file solutions/crud-quarkus/crud-api.ecs.cform.yaml --parameter-overrides QuarkusDatasourceJdbcUrl="$QUARKUS_DATASOURCE_JDBC_URL" QuarkusDatasourceUsername="$QUARKUS_DATASOURCE_USERNAME" QuarkusDatasourcePassword="$QUARKUS_DATASOURCE_PASSWORD" 
 
 Description: CrudAPI on ECS
 
@@ -21,7 +21,6 @@ Parameters:
     Default: public.ecr.aws/h7c5j0n2/crud-api:0.0.1
     Description: Docker image for the CrudAPI 
   
-  # TODO: pass quarkus datasource paramas to container env vars
   QuarkusDatasourceJdbcUrl:
     Description: JDBC URL for the Quarkus application
     Type: String

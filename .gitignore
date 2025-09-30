@@ -6,3 +6,4 @@ node-modules
 .DS_Store
 .idea
 *.log
+target

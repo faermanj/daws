@@ -7,7 +7,6 @@ REPO_NAME="crud-api"
 IMAGE_TAG="0.0.1"
 LOCAL_IMAGE="${REPO_NAME}:${IMAGE_TAG}"
 
-#TODO check if repo exists
 if ! aws ecr-public describe-repositories --repository-names "${REPO_NAME}" >/dev/null 2>&1; then
   aws ecr-public create-repository --repository-name "${REPO_NAME}"
 fi

@@ -1,6 +1,6 @@
-AWSTemplateFormatVersion: '2010-09-09'
+# mvn -f solutions/crud-quarkus clean verify
+# sam deploy --stack-name crud-api-fn --template-file solutions/crud-quarkus/crud-api-fn/sam.cform.yaml --resolve-s3 --capabilities CAPABILITY_IAM
 Transform: AWS::Serverless-2016-10-31
-Description: AWS Serverless Quarkus HTTP - crud-api-fn
 
 Globals:
   Api:
