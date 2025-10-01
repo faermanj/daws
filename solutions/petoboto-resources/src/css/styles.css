@@ -1,0 +1,15 @@
+body {
+  font-family: system-ui, Arial, sans-serif;
+  margin: 0;
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: #f7f7fb;
+}
+
+h1 {
+  font-size: 3rem;
+  color: #333;
+  letter-spacing: .05em;
+}

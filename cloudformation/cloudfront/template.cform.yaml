@@ -1,0 +1,93 @@
+# aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
+# aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
+# aws cloudformation deploy --stack-name s3-distribution --template-file solutions/distribution/s3-resources/template.cform.yaml
+# mvn -f solutions/crud-quarkus clean verify
+# TODO: API resources
+# aws cloudformation deploy --stack-name cf-distribution --template-file cloudformation/cloudfront/template.cform.yaml
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFront distribution with S3 default origin and ALB-backed /api path.
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used for cross-stack imports.
+
+Resources:
+  OriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'OAI for CloudFront distribution'
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub 'CloudFront distribution for ${EnvId}'
+        Enabled: true
+        PriceClass: PriceClass_100
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName:
+              Fn::Sub: 
+                - ${BucketName}.s3.${AWS::Region}.amazonaws.com
+                - BucketName: 
+                    Fn::ImportValue: 
+                      Fn::Sub: 
+                        '${EnvId}-ResourcesBucketName'
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${OriginAccessIdentity}'            
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+# add a bucket policy to allow OAI access to the bucket
+  ResourcesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Fn::ImportValue: 
+          Fn::Sub: 
+            '${EnvId}-ResourcesBucketName'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt OriginAccessIdentity.S3CanonicalUserId
+            Action:
+              - s3:GetObject
+            Resource:
+              Fn::Sub: 
+                - arn:aws:s3:::${BucketName}/*
+                - BucketName: 
+                    Fn::ImportValue: 
+                      Fn::Sub: 
+                        '${EnvId}-ResourcesBucketName'
+
+Outputs:
+  DistributionId:
+    Description: CloudFront distribution identifier.
+    Value: !Ref Distribution
+    Export:
+      Name: !Sub '${EnvId}-DistributionId'
+  DistributionDomainName:
+    Description: CloudFront distribution domain name.
+    Value: !GetAtt Distribution.DomainName
+    Export:
+      Name: !Sub '${EnvId}-DistributionDomainName'
