@@ -25,5 +25,6 @@
     // Disable Kiro AI extension
     "kiroAgent.configureMCP": "Disabled",
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "java.configuration.updateBuildConfiguration": "automatic"
 }
