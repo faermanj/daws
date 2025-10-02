@@ -6,7 +6,7 @@
 # echo "http://$PUBLIC_IP/tuna-bigfile.jpg"
 # time curl "http://$PUBLIC_IP/tuna-bigfile.jpg"
 # 
-#   ab -k -t 120 -c $c "http://$PUBLIC_IP/tuna-bigfile.jpg"
+#   ab -k -t 123 -c 45 -r "http://$PUBLIC_IP/tuna-bigfile.jpg"
 
  
 Description: EC2 instance running a Python HTTP server
