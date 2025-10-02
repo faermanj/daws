@@ -8,5 +8,5 @@ $DIR/cloudformation-janitor.sh
 
 $DIR/ec2-janitor.sh
 $DIR/lambda-janitor.sh
-$DIR/cloudfront-janitor.sh
+# $DIR/cloudfront-janitor.sh
 
