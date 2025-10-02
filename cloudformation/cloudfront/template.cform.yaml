@@ -1,11 +1,21 @@
+# aws cloudformation deploy --stack-name s3-distribution --template-file solutions/petoboto-resources/bucket.cform.yaml
+# aws s3 cp solutions/petoboto-resources/src/ s3://$BUCKET_NAME/ --acl public-read
+
+
 # aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
 # aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
-# aws cloudformation deploy --stack-name s3-distribution --template-file solutions/distribution/s3-resources/template.cform.yaml
 # mvn -f solutions/crud-quarkus clean verify
 # TODO: API resources
-# aws cloudformation deploy --stack-name cf-distribution --template-file cloudformation/cloudfront/template.cform.yaml
+
+# aws cloudformation deploy --stack-name cloudfront --template-file cloudformation/cloudfront/template.cform.yaml
+# DISTRIBUTION_DOMAIN=$(aws cloudformation describe-stacks --stack-name cloudfront --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" --output text)
+# echo "http://$DISTRIBUTION_DOMAIN/"
+# echo "http://$DISTRIBUTION_DOMAIN/tuna-bigfile.jpg"
+# time curl -s "http://$DISTRIBUTION_DOMAIN/tuna-bigfile.jpg" -o /dev/null
+# ab -k -t 333 -c 99 -r "http://$DISTRIBUTION_DOMAIN/tuna-bigfile.jpg"
+
 AWSTemplateFormatVersion: 2010-09-09
-Description: CloudFront distribution with S3 default origin and ALB-backed /api path.
+Description: CloudFront distribution with S3 default origin 
 
 Parameters:
   EnvId:

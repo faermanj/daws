@@ -4,14 +4,22 @@
 # PUBLIC_IP=$(aws cloudformation describe-stacks --stack-name simple-ec2-python --query "Stacks[0].Outputs[?OutputKey=='InstancePublicIP'].OutputValue" --output text)
 # echo "http://$PUBLIC_IP/"
 # echo "http://$PUBLIC_IP/tuna-bigfile.jpg"
-# time curl "http://$PUBLIC_IP/tuna-bigfile.jpg"
-# 
-#   ab -k -t 123 -c 45 -r "http://$PUBLIC_IP/tuna-bigfile.jpg"
+# time curl "http://$PUBLIC_IP/tuna-bigfile.jpg" -o /dev/null
+# ab -k -t 333 -c 99 -r "http://$PUBLIC_IP/tuna-bigfile.jpg"
 
- 
+
 Description: EC2 instance running a Python HTTP server
 
 Parameters:
+  InstanceType:
+    Type: String
+    Default: t4g.nano
+
+  AmiSsmParameter:
+    Type: String
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2
+    Description: SSM parameter name resolving to the desired AMI ID
+
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access
     Type: AWS::EC2::KeyPair::KeyName
@@ -31,7 +39,15 @@ Parameters:
     Type: String
     Default: "true"
     AllowedValues: ["true","false"]
-    Description: Enable CloudWatch detailed (1-minute) monitoring for the instance
+    Description: Enable CloudWatch detailed monitoring for the instance
+
+  VolumeSize:
+    Type: Number
+    Default: 8
+  
+  VolumeType:
+    Type: String
+    Default: gp3
 
 Resources:
   InstanceSecurityGroup:
@@ -51,16 +67,20 @@ Resources:
   SimplePythonServer:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t3.micro
+      InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      ImageId:
-        Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}"
+      ImageId: !Sub "{{resolve:ssm:${AmiSsmParameter}}}"
       SecurityGroupIds:
         - !Ref InstanceSecurityGroup
       Monitoring: !Ref DetailedMonitoring
       Tags:
         - Key: Name
           Value: SimplePythonServer
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvda
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
@@ -72,7 +92,6 @@ Resources:
           cd ${GitHubRepo}-main/html/simple-html/
           chown -R ec2-user:ec2-user /home/ec2-user/
           nohup python3 -m http.server 80 --bind 0.0.0.0 &
-
 
 Outputs:
   InstancePublicIP:
