@@ -1,0 +1,36 @@
+Description: ALB Alias Record
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+  
+  HostedZoneId:
+    Type: String
+    Description: "The ID of the existing Route 53 Hosted Zone"
+  
+  DomainName:
+    Type: String
+    Description: "The domain name for the ALB"
+
+Resources:
+  DistributionAliasRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub "${EnvId}.${DomainName}"
+      Type: A
+      AliasTarget:
+        DNSName: 
+          Fn::ImportValue: !Sub "${EnvId}-DistributionDomainName"
+        HostedZoneId: Z2FDTNDATAQYW2   # CloudFront hosted zone ID (global)
+        EvaluateTargetHealth: false
+
+
+
+Outputs:
+  ALBAliasRecordName:
+    Description: Name of the ALB Alias Record
+    Value: !Ref ALBAliasRecord
+    Export:
+      Name: !Sub "${EnvId}-ALBAliasRecordName"
