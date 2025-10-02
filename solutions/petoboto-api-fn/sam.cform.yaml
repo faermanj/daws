@@ -28,7 +28,15 @@ Resources:
       Events:
         HttpApiEvent:
           Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
 Outputs:
+  PetobotoApiDnsName:
+    Description: DNS Hostname for application
+    Value: !Sub '${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: !Sub '${EnvId}-PetobotoApiDnsName'
   PetobotoApiUrl:
     Description: URL for application
     Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/'

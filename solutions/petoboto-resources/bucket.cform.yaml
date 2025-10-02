@@ -1,5 +1,5 @@
 # aws cloudformation deploy --stack-name resources-bucket-resources --template-file solutions/petoboto-resources/bucket.cform.yaml 
-# BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name resources-bucket-resources --query "Stacks[0].Outputs[?OutputKey=='BucketNameOutput'].OutputValue" --output text)
+# BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name resources-bucket-resources --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" --output text)
 # echo $BUCKET_NAME
 # aws s3 cp html/simple-html/tuna-bigfile.jpg s3://$BUCKET_NAME/ --acl public-read
 # OBJECT_URL="http://$BUCKET_NAME.s3.amazonaws.com/tuna-bigfile.jpg"
@@ -29,7 +29,7 @@ Resources:
         RestrictPublicBuckets: false
 
 Outputs:
-  BucketNameOutput:
+  BucketName:
     Description: Created S3 bucket name.
     Value: !Ref ResourcesBucket
     Export:

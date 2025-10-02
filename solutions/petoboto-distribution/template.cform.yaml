@@ -26,6 +26,10 @@ Parameters:
     Default: project
     Description: Environment identifier used for cross-stack imports.
 
+  DomainName:
+    Type: String
+    Description: "The domain name for the Distribution"
+
 Resources:
   OriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
@@ -41,6 +45,11 @@ Resources:
         Enabled: true
         PriceClass: PriceClass_100
         DefaultRootObject: index.html
+        Aliases:
+          - !Sub '${EnvId}.${DomainName}'
+        ViewerCertificate:
+          ACMCertificateArn: 
+            Fn::ImportValue: !Sub '${EnvId}-CertificateArn'
         Origins:
           - Id: S3Origin
             DomainName:
@@ -57,7 +66,7 @@ Resources:
             DomainName:
               Fn::ImportValue: 
                 Fn::Sub: 
-                  '${EnvId}-ApiEndpoint'
+                  '${EnvId}-PetobotoApiDnsName'
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
@@ -67,22 +76,32 @@ Resources:
             TargetOriginId: APIOrigin
             ViewerProtocolPolicy: redirect-to-https
             AllowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
               - HEAD
+              - DELETE
+              - POST
+              - GET
               - OPTIONS
+              - PUT
+              - PATCH
             CachedMethods:
               - GET
               - HEAD
-            Compress: true  
+            Compress: true
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https
           AllowedMethods:
-            - GET
             - HEAD
+            - DELETE
+            - POST
+            - GET
+            - OPTIONS
+            - PUT
+            - PATCH
           CachedMethods:
             - GET
             - HEAD
@@ -90,7 +109,7 @@ Resources:
           ForwardedValues:
             QueryString: false
             Cookies:
-              Forward: none
+              Forward: all
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
 # add a bucket policy to allow OAI access to the bucket
