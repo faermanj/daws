@@ -3,10 +3,12 @@
 # aws cloudformation deploy --stack-name simple-ec2-python --template-file cloudformation/ec2-simple-python/template.cform.yaml --parameter-overrides KeyName=$KEYPAIR_NAME
 # PUBLIC_IP=$(aws cloudformation describe-stacks --stack-name simple-ec2-python --query "Stacks[0].Outputs[?OutputKey=='InstancePublicIP'].OutputValue" --output text)
 # echo "http://$PUBLIC_IP/"
-# echo "http://$PUBLIC_IP/images/pets/tuna/tuna-1.png"
-# time curl "http://$PUBLIC_IP/images/pets/tuna/tuna-bigfile.jpg"
+# echo "http://$PUBLIC_IP/tuna-bigfile.jpg"
+# time curl "http://$PUBLIC_IP/tuna-bigfile.jpg"
 # 
-# ab 
+#   ab -k -t 120 -c $c "http://$PUBLIC_IP/tuna-bigfile.jpg"
+
+ 
 Description: EC2 instance running a Python HTTP server
 
 Parameters:
