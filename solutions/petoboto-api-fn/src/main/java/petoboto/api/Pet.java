@@ -14,9 +14,7 @@ public class Pet extends PanacheEntity {
     private String name;
     private PetKind kind;
     
-    @ElementCollection
-    @OrderColumn(name = "picture_order")  // keeps insertion order
-    @Column(name = "picture_name")
+    //TODO: Map pictures to a separate table
     private List<String> pictures = new ArrayList<>();
     
     public static Pet create(String name, PetKind kind, List<String> pictures) {
