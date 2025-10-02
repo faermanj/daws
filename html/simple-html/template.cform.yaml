@@ -5,7 +5,8 @@
 # echo "http://$PUBLIC_IP/"
 # echo "http://$PUBLIC_IP/images/pets/tuna/tuna-1.png"
 # time curl "http://$PUBLIC_IP/images/pets/tuna/tuna-bigfile.jpg"
-
+# 
+# ab 
 Description: EC2 instance running a Python HTTP server
 
 Parameters:

@@ -1,5 +1,57 @@
 <html>
   <body>
     <h1>Ol&aacute; Mundo!</h1>
+    <!-- Cute calico cat SVG -->
+    <svg width="220" height="180" viewBox="0 0 220 180" role="img" aria-labelledby="calicoTitle calicoDesc">
+      <title id="calicoTitle">Cute Calico Cat</title>
+      <desc id="calicoDesc">Illustration of a sitting calico cat with orange and black patches</desc>
+      <defs>
+        <clipPath id="headClip">
+          <circle cx="110" cy="70" r="40"/>
+        </clipPath>
+      </defs>
+      <!-- Tail -->
+      <path d="M165 115c18 5 25 15 23 28-2 14-16 18-23 12 7-3 11-8 11-13 0-7-6-12-11-17z"
+            fill="#f4a261" stroke="#222" stroke-width="2" />
+      <!-- Body -->
+      <ellipse cx="110" cy="120" rx="55" ry="50" fill="#fff" stroke="#222" stroke-width="2"/>
+      <!-- Body patches -->
+      <path d="M85 90c-15 8-22 22-18 38 10-4 20-9 25-18 4-7 2-14-7-20z" fill="#333"/>
+      <path d="M130 95c14 6 24 18 26 33-14-2-27-8-30-17-3-7 0-12 4-16z" fill="#f4a261"/>
+      <!-- Head -->
+      <circle cx="110" cy="70" r="40" fill="#fff" stroke="#222" stroke-width="2"/>
+      <!-- Ears -->
+      <path d="M78 52l-10-20 20 8z" fill="#333" stroke="#222" stroke-width="2"/>
+      <path d="M142 52l10-20-20 8z" fill="#f4a261" stroke="#222" stroke-width="2"/>
+      <!-- Head patches (clipped) -->
+      <g clip-path="url(#headClip)">
+        <path d="M90 30c-18 10-28 30-12 50 6-15 14-26 27-30-4-8-8-14-15-20z" fill="#f4a261"/>
+        <path d="M140 44c10 12 8 30-6 38-4-9-10-16-20-20 8-6 16-11 26-18z" fill="#333"/>
+      </g>
+      <!-- Eyes -->
+      <circle cx="95" cy="70" r="6" fill="#222"/>
+      <circle cx="125" cy="70" r="6" fill="#222"/>
+      <circle cx="93" cy="68" r="2" fill="#fff"/>
+      <circle cx="123" cy="68" r="2" fill="#fff"/>
+      <!-- Nose -->
+      <path d="M108 80l4 6 4-6z" fill="#f28f8f" stroke="#222" stroke-width="1"/>
+      <!-- Mouth -->
+      <path d="M112 86c0 4-3 7-8 7" stroke="#222" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M112 86c0 4 3 7 8 7" stroke="#222" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Whiskers -->
+      <g stroke="#555" stroke-width="2" stroke-linecap="round">
+        <line x1="80" y1="83" x2="104" y2="84"/>
+        <line x1="80" y1="88" x2="104" y2="87"/>
+        <line x1="80" y1="93" x2="104" y2="90"/>
+        <line x1="120" y1="84" x2="144" y2="83"/>
+        <line x1="120" y1="87" x2="144" y2="88"/>
+        <line x1="120" y1="90" x2="144" y2="93"/>
+      </g>
+      <!-- Paws -->
+      <ellipse cx="85" cy="158" rx="14" ry="8" fill="#fff" stroke="#222" stroke-width="2"/>
+      <ellipse cx="135" cy="158" rx="14" ry="8" fill="#fff" stroke="#222" stroke-width="2"/>
+      <!-- Subtle shadow -->
+      <ellipse cx="110" cy="170" rx="60" ry="8" fill="rgba(0,0,0,0.1)"/>
+    </svg>
   </body>
 </html>

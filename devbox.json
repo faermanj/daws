@@ -12,7 +12,8 @@
     "maven@latest",
     "hugo@latest",
     "jreleaser-cli@latest",
-    "htop@latest"
+    "htop@latest",
+    "apacheHttpd@latest"
   ],
   "shell": {
     "init_hook": ["echo 'Welcome to devbox!'"],
