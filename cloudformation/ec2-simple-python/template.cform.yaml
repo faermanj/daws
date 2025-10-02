@@ -27,6 +27,12 @@ Parameters:
     Type: String
     Default: "daws"
 
+  DetailedMonitoring:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true","false"]
+    Description: Enable CloudWatch detailed (1-minute) monitoring for the instance
+
 Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -51,6 +57,7 @@ Resources:
         Fn::Sub: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2}}"
       SecurityGroupIds:
         - !Ref InstanceSecurityGroup
+      Monitoring: !Ref DetailedMonitoring
       Tags:
         - Key: Name
           Value: SimplePythonServer
