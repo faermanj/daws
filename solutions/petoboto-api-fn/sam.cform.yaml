@@ -1,4 +1,3 @@
-
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: AWS Serverless Quarkus HTTP - petoboto-api-fn-1.0.0-SNAPSHOT
@@ -14,6 +13,14 @@ Parameters:
     Type: String
     Default: project
     Description: Environment identifier used for cross-stack imports.
+  
+  DomainName:
+    Type: String
+    Description: API domain name (e.g. api.example.com)
+  
+  HostedZoneId:
+    Type: String
+    Description: Route53 Hosted Zone ID containing the domain
 
 Resources:
   PetobotoApiFn:
@@ -24,22 +31,73 @@ Resources:
       CodeUri: target/function.zip
       MemorySize: 512
       Policies: AWSLambdaBasicExecutionRole
-      Timeout: 15
+      Timeout: 60
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub '${EnvId}-DBClientsSecurityGroupId'
+        SubnetIds:
+          - Fn::ImportValue: !Sub '${EnvId}-PublicSubnet1Id'
+          - Fn::ImportValue: !Sub '${EnvId}-PublicSubnet2Id'
+          - Fn::ImportValue: !Sub '${EnvId}-PublicSubnet3Id'
+      Environment:
+        Variables:
+            QUARKUS_DATASOURCE_JDBC_URL: 
+              Fn::ImportValue: !Sub "${EnvId}-JDBCUrl"
+            QUARKUS_DATASOURCE_USERNAME: 
+              Fn::ImportValue: !Sub "${EnvId}-DBUsername"
+            QUARKUS_DATASOURCE_PASSWORD: 
+              Fn::ImportValue: !Sub "${EnvId}-DBPassword"
       Events:
         HttpApiEvent:
           Type: HttpApi
           Properties:
             Path: /{proxy+}
             Method: ANY
+
+  ApiDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !Sub "${EnvId}-api.${DomainName}"
+      DomainNameConfigurations:
+        - CertificateArn:
+            Fn::ImportValue: !Sub '${EnvId}-AcmCertificateArn'
+          EndpointType: REGIONAL
+
+  ApiDomainMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      ApiId: !Ref ServerlessHttpApi
+      DomainName: !Sub "${EnvId}-api.${DomainName}"
+      Stage: '$default'
+
+  ApiDomainARecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub "${EnvId}-api.${DomainName}"
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt ApiDomain.RegionalDomainName
+        HostedZoneId: !GetAtt ApiDomain.RegionalHostedZoneId
+
 Outputs:
   PetobotoApiDnsName:
-    Description: DNS Hostname for application
+    Description: Default execute-api DNS Hostname
     Value: !Sub '${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
     Export:
       Name: !Sub '${EnvId}-PetobotoApiDnsName'
   PetobotoApiUrl:
-    Description: URL for application
+    Description: Default execute-api URL
     Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/'
     Export:
       Name: !Sub '${EnvId}-PetobotoApiUrl'
-
+  ApiDomain:
+    Description: API domain name
+    Value: !Ref DomainName
+    Export:
+      Name: !Sub '${EnvId}-ApiDomain'
+  ApiDomainUrl:
+    Description: Base URL using API domain
+    Value: !Sub 'https://${DomainName}/'
+    Export:
+      Name: !Sub '${EnvId}-ApiDomainUrl'

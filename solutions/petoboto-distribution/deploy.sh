@@ -38,6 +38,9 @@ mvn -f ./solutions/petoboto-api-fn clean verify
 sam deploy \
     --stack-name petoboto-api-fn \
     --template-file solutions/petoboto-api-fn/sam.cform.yaml \
+    --parameter-overrides \
+        HostedZoneId=$ZONE_ID \
+        DomainName=$DOMAIN_NAME \
     --capabilities CAPABILITY_IAM \
     --resolve-s3
 API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)

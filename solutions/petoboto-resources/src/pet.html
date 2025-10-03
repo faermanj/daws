@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pet Details</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="pet-detail-page">
+  <header class="pet-detail-header">
+    <a class="pet-detail-header__back" href="index.html">&larr; Back to gallery</a>
+  </header>
+  <main class="pet-detail" id="pet-detail">
+    <section class="pet-detail__intro">
+      <h1 id="pet-name" class="pet-detail__name">Loading...</h1>
+      <p id="pet-kind" class="pet-detail__kind"></p>
+      <p id="pet-status" class="pet-message" hidden></p>
+    </section>
+    <section id="pet-gallery" class="pet-detail__gallery" aria-live="polite"></section>
+  </main>
+  <script src="pets-api.js"></script>
+  <script src="pet.js"></script>
+</body>
+</html>
