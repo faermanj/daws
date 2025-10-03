@@ -18,7 +18,10 @@ aws cloudformation deploy \
 aws cloudformation deploy \
     --stack-name petoboto-resources \
     --template-file solutions/petoboto-resources/bucket.cform.yaml
-BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name petoboto-resources --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" --output text)
+BUCKET_NAME=$(aws cloudformation describe-stacks \
+    --stack-name petoboto-resources \
+    --query "Stacks[0].Outputs[?OutputKey=='ResourcesBucketName'].OutputValue" \
+    --output text)
 echo BUCKET_NAME=$BUCKET_NAME
 aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME/ --acl public-read
 echo "http://$BUCKET_NAME.s3.amazonaws.com/index.html"

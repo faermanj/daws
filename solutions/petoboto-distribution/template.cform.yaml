@@ -1,14 +1,13 @@
 # aws cloudformation deploy --stack-name s3-distribution --template-file solutions/petoboto-resources/bucket.cform.yaml
 # aws s3 cp solutions/petoboto-resources/src/ s3://$BUCKET_NAME/ --acl public-read
 
-
 # aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
 # aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
 # mvn -f solutions/petoboto-api-fn clean verify
 # sam deploy --stack-name petoboto-api-fn --template-file solutions/petoboto-api-fn/sam.cform.yaml --capabilities CAPABILITY_IAM --resolve-s3
 # API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
 # echo $API_URL
-# curl -s "$API_URL/api/pets/" 
+# curl -s "$API_URL/api/pets/"
 
 # aws cloudformation deploy --stack-name cloudfront --template-file cloudformation/cloudfront/template.cform.yaml
 # DISTRIBUTION_DOMAIN=$(aws cloudformation describe-stacks --stack-name cloudfront --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" --output text)
@@ -18,7 +17,7 @@
 # ab -k -t 333 -c 22 -r "http://$DISTRIBUTION_DOMAIN/tuna-bigfile.jpg"
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: CloudFront distribution with S3 default origin 
+Description: CloudFront distribution with S3 default origin
 
 Parameters:
   EnvId:
@@ -35,40 +34,46 @@ Resources:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'OAI for CloudFront distribution'
+        Comment: !Sub "OAI for CloudFront distribution"
 
   Distribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: !Sub 'CloudFront distribution for ${EnvId}'
+        Comment: !Sub "CloudFront distribution for ${EnvId}"
         Enabled: true
         PriceClass: PriceClass_100
         DefaultRootObject: index.html
         Aliases:
-          - !Sub '*.${DomainName}'
-          - !Sub '${EnvId}.${DomainName}'
+          - !Sub "*.${DomainName}"
+          - !Sub "${EnvId}.${DomainName}"
         ViewerCertificate:
           SslSupportMethod: sni-only
-          AcmCertificateArn: 
-            Fn::ImportValue: !Sub '${EnvId}-AcmCertificateArn'
+          AcmCertificateArn:
+            Fn::ImportValue: !Sub "${EnvId}-AcmCertificateArn"
+          MinimumProtocolVersion: TLSv1.2_2021
+# TODO: Configure the logging bucket for log delivery in this template following https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging.html dont change code yet show me the changes to confitm
+#        Logging:
+#          Bucket:
+#            Fn::ImportValue: !Sub "${EnvId}-LogsBucketName"
+#          IncludeCookies: true
+#          Prefix: !Sub "${EnvId}/cloudfront/"
         Origins:
           - Id: S3Origin
             DomainName:
-              Fn::Sub: 
+              Fn::Sub:
                 - ${BucketName}.s3.${AWS::Region}.amazonaws.com
-                - BucketName: 
-                    Fn::ImportValue: 
-                      Fn::Sub: 
-                        '${EnvId}-ResourcesBucketName'
+                - BucketName:
+                    Fn::ImportValue:
+                      Fn::Sub: "${EnvId}-ResourcesBucketName"
             S3OriginConfig:
-              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${OriginAccessIdentity}'            
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${OriginAccessIdentity}"
           - Id: APIOrigin
             # redirect to API Gateway endpoint http api on /api/*
             DomainName:
-              Fn::ImportValue: 
-                Fn::Sub: 
-                  '${EnvId}-PetobotoApiDnsName'
+              Fn::ImportValue:
+                Fn::Sub: "${EnvId}-PetobotoApiDnsName"
+            
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
@@ -112,39 +117,39 @@ Resources:
             QueryString: false
             Cookies:
               Forward: all
-# add a bucket policy to allow OAI access to the bucket
+
   ResourcesBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket:
-        Fn::ImportValue: 
-          Fn::Sub: 
-            '${EnvId}-ResourcesBucketName'
+        Fn::ImportValue:
+          Fn::Sub: "${EnvId}-ResourcesBucketName"
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Sid: AllowCloudFrontServicePrincipalReadOnly
             Effect: Allow
             Principal:
-              CanonicalUser: !GetAtt OriginAccessIdentity.S3CanonicalUserId
+            #  AWS: "*"
+              Service: cloudfront.amazonaws.com   
+            #  CanonicalUser: !GetAtt OriginAccessIdentity.S3CanonicalUserId
             Action:
               - s3:GetObject
             Resource:
-              Fn::Sub: 
+              Fn::Sub:
                 - arn:aws:s3:::${BucketName}/*
-                - BucketName: 
-                    Fn::ImportValue: 
-                      Fn::Sub: 
-                        '${EnvId}-ResourcesBucketName'
+                - BucketName:
+                    Fn::ImportValue:
+                      Fn::Sub: "${EnvId}-ResourcesBucketName"
 
 Outputs:
   DistributionId:
     Description: CloudFront distribution identifier.
     Value: !Ref Distribution
     Export:
-      Name: !Sub '${EnvId}-DistributionId'
+      Name: !Sub "${EnvId}-DistributionId"
   DistributionDomainName:
     Description: CloudFront distribution domain name.
     Value: !GetAtt Distribution.DomainName
     Export:
-      Name: !Sub '${EnvId}-DistributionDomainName'
+      Name: !Sub "${EnvId}-DistributionDomainName"

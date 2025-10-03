@@ -16,21 +16,22 @@ Parameters:
     Description: Environment identifier used to prefix exported outputs.
 
 Resources:
+
   ResourcesBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: BucketOwnerPreferred
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
-        IgnorePublicAcls: false
-        RestrictPublicBuckets: false
+
+  LogsBucket:
+    Type: AWS::S3::Bucket
 
 Outputs:
-  BucketName:
-    Description: Created S3 bucket name.
+  ResourcesBucketName:
+    Description: Resource bucket name.
     Value: !Ref ResourcesBucket
     Export:
       Name: !Sub '${EnvId}-ResourcesBucketName'
+
+  LogsBucketNameName:
+    Description: Logs bucket name.
+    Value: !Ref LogsBucket
+    Export:
+      Name: !Sub '${EnvId}-LogsBucketName'
