@@ -43,6 +43,8 @@ echo $API_URL
 
 aws cloudformation deploy \
     --stack-name petoboto-distribution \
+    --parameter-overrides \
+        DomainName=$DOMAIN_NAME \
     --template-file solutions/petoboto-distribution/template.cform.yaml
 DISTRIBUTION_DOMAIN=$(aws cloudformation describe-stacks \
     --stack-name petoboto-distribution \

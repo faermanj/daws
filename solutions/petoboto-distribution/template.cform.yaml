@@ -46,10 +46,12 @@ Resources:
         PriceClass: PriceClass_100
         DefaultRootObject: index.html
         Aliases:
+          - !Sub '*.${DomainName}'
           - !Sub '${EnvId}.${DomainName}'
         ViewerCertificate:
-          ACMCertificateArn: 
-            Fn::ImportValue: !Sub '${EnvId}-CertificateArn'
+          SslSupportMethod: sni-only
+          AcmCertificateArn: 
+            Fn::ImportValue: !Sub '${EnvId}-AcmCertificateArn'
         Origins:
           - Id: S3Origin
             DomainName:
@@ -74,7 +76,7 @@ Resources:
         CacheBehaviors:
           - PathPattern: /api/*
             TargetOriginId: APIOrigin
-            ViewerProtocolPolicy: redirect-to-https
+            ViewerProtocolPolicy: https-only
             AllowedMethods:
               - HEAD
               - DELETE
@@ -93,7 +95,7 @@ Resources:
                 Forward: all
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
-          ViewerProtocolPolicy: redirect-to-https
+          ViewerProtocolPolicy: https-only
           AllowedMethods:
             - HEAD
             - DELETE
@@ -110,8 +112,6 @@ Resources:
             QueryString: false
             Cookies:
               Forward: all
-        ViewerCertificate:
-          CloudFrontDefaultCertificate: true
 # add a bucket policy to allow OAI access to the bucket
   ResourcesBucketPolicy:
     Type: AWS::S3::BucketPolicy
