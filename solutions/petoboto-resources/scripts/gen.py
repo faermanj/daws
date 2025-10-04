@@ -1,10 +1,14 @@
-# pip install pillow numpy
+#!/usr/bin/env python3
+
+# Install dependencies if needed:
+# sudo pip install pillow numpy
+
 from PIL import Image, ImageDraw, ImageOps
 import numpy as np
 import random, os
 
 FILENAME = "bigfile.jpg"
-TARGET_MB = 99
+TARGET_MB = 1
 TARGET_BYTES = TARGET_MB * 1024 * 1024
 
 JPEG_QUALITY = 100
@@ -112,8 +116,9 @@ def filesize(path):
 # -------------------------
 # Binary search for S
 # -------------------------
-low, high = 2000, 15000
-best_S, best_size = None, 0
+low, high = 500, 16000
+best_under_S, best_under_size = None, -1
+best_over_S, best_over_size = None, None
 
 while low <= high:
     mid = (low + high) // 2
@@ -123,10 +128,20 @@ while low <= high:
     sz = filesize(FILENAME)
     print(f"Tried S={mid} -> {sz/(1024*1024):.2f} MB")
     if sz > TARGET_BYTES:
-        high = mid - 200   # shrink
+        if best_over_S is None or sz < best_over_size:
+            best_over_S, best_over_size = mid, sz
+        high = mid - 1   # shrink
     else:
-        best_S, best_size = mid, sz
-        low = mid + 200   # grow
+        if sz > best_under_size:
+            best_under_S, best_under_size = mid, sz
+        low = mid + 1   # grow
+
+if best_under_S is not None:
+    best_S, best_size = best_under_S, best_under_size
+elif best_over_S is not None:
+    best_S, best_size = best_over_S, best_over_size
+else:
+    raise RuntimeError("Unable to approximate target size within the configured search range.")
 
 # Final with best S
 img = make_cat(best_S)

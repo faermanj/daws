@@ -47,6 +47,16 @@ Parameters:
   DBInstanceClass:
     Type: String
     Default: db.serverless
+  
+  MinCapacity:
+    Type: Number
+    Default: 0.0
+    Description: Minimum Aurora Serverless capacity in ACUs
+  
+  MaxCapacity:
+    Type: Number
+    Default: 2.0
+    Description: Maximum Aurora Serverless capacity in ACUs
 
 Resources:
   DBClientsSecurityGroup:
@@ -105,8 +115,8 @@ Resources:
       VpcSecurityGroupIds: [!Ref DbSecurityGroup]
       DatabaseName: !Ref DatabaseName
       ServerlessV2ScalingConfiguration:
-        MinCapacity: 0
-        MaxCapacity: 16
+        MinCapacity: !Ref MinCapacity
+        MaxCapacity: !Ref MaxCapacity
       Tags:
         - Key: EnvId
           Value: !Ref EnvId

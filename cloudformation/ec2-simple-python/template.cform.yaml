@@ -3,17 +3,11 @@
 
 # aws cloudformation deploy --stack-name simple-ec2-python --template-file cloudformation/ec2-simple-python/template.cform.yaml --parameter-overrides KeyName=$KEYPAIR_NAME
 # PUBLIC_IP=$(aws cloudformation describe-stacks --stack-name simple-ec2-python --query "Stacks[0].Outputs[?OutputKey=='InstancePublicIP'].OutputValue" --output text)
+
 # echo "http://$PUBLIC_IP/"
-# echo "http://$PUBLIC_IP/tuna-bigfile.jpg"
-# time curl "http://$PUBLIC_IP/tuna-bigfile.jpg" -o /dev/null
-# ab -k -t 333 -c 22 -r "http://$PUBLIC_IP/tuna-bigfile.jpg"
-
-# aws cloudformation deploy --stack-name large-ec2-python --template-file cloudformation/ec2-simple-python/template.cform.yaml --parameter-overrides KeyName=$KEYPAIR_NAME InstanceType=t4g.2xlarge VolumeSize=100
-# LARGE_IP=$(aws cloudformation describe-stacks --stack-name large-ec2-python --query "Stacks[0].Outputs[?OutputKey=='InstancePublicIP'].OutputValue" --output text)
-# echo "http://$LARGE_IP/tuna-bigfile.jpg"
-# time curl "http://$LARGE_IP/tuna-bigfile.jpg" -o /dev/null
-# ab -k -t 333 -c 222 -r "http://$LARGE_IP/tuna-bigfile.jpg"
-
+# echo "http://$PUBLIC_IP/tuna-10mb.jpg"
+# time curl "http://$PUBLIC_IP/tuna-10mb.jpg" -o /dev/null
+# ab -k -n 655350 -c 256 -r "http://$PUBLIC_IP/tuna-10mb.jpg"
 
 Description: EC2 instance running a Python HTTP server
 
