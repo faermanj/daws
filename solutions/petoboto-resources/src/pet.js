@@ -7,19 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  fetch("/api/pets")
+  fetch("/api/pet/" + petId)
     .then(response => response.json())
-    .then(pets => {
-      const pet = pets.find(p => p.id == petId);
-      if (!pet) {
-        document.body.innerHTML = "<p>Pet not found</p>";
-        return;
-      }
-      loadPet(pet);
-    })
-    .catch(() => {
-      document.body.innerHTML = "<p>Error loading pet</p>";
-    });
+    .then(loadPet);
 });
 
 function loadPet(pet) {
