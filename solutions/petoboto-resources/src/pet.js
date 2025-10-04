@@ -1,93 +1,42 @@
-const { fetchPets, toFolderName, findPetByIdentifier } = window.PetsAPI;
-
 document.addEventListener("DOMContentLoaded", () => {
-  renderPetPage().catch((error) => {
-    console.error("Failed to render pet page", error);
-    showStatus("We couldn't load this pet right now. Please try again later.", true);
-  });
+  const urlParams = new URLSearchParams(window.location.search);
+  const petId = urlParams.get("id");
+  
+  if (!petId) {
+    document.body.innerHTML = "<p>Pet not found</p>";
+    return;
+  }
+
+  fetch("/api/pets")
+    .then(response => response.json())
+    .then(pets => {
+      const pet = pets.find(p => p.id == petId);
+      if (!pet) {
+        document.body.innerHTML = "<p>Pet not found</p>";
+        return;
+      }
+      loadPet(pet);
+    })
+    .catch(() => {
+      document.body.innerHTML = "<p>Error loading pet</p>";
+    });
 });
 
-async function renderPetPage() {
-  const identifier = new URLSearchParams(window.location.search).get("pet");
+function loadPet(pet) {
+  document.title = `${pet.name} - Pet Details`;
+  
+  const gallery = pet.pictures.map(pic => 
+    `<img src="/images/pets/${pet.name.toLowerCase()}/${pic}" alt="${pet.name}">`
+  ).join("");
 
-  if (!identifier) {
-    showStatus("Missing pet identifier in the page URL.", true);
-    return;
-  }
-
-  const pets = await fetchPets();
-  const pet = findPetByIdentifier(pets, identifier);
-
-  if (!pet) {
-    showStatus("We couldn't find that pet.", true);
-    return;
-  }
-
-  updatePageMetadata(pet);
-  renderPetInformation(pet);
-  renderGallery(pet);
-}
-
-function updatePageMetadata(pet) {
-  if (pet.name) {
-    document.title = `${pet.name} — Pet Details`;
-  }
-}
-
-function renderPetInformation(pet) {
-  const nameEl = document.getElementById("pet-name");
-  const kindEl = document.getElementById("pet-kind");
-  const statusEl = document.getElementById("pet-status");
-
-  nameEl.textContent = pet.name || "Unnamed friend";
-  if (pet.kind) {
-    kindEl.textContent = formatKindLabel(pet.kind);
-    kindEl.hidden = false;
-  } else {
-    kindEl.hidden = true;
-  }
-
-  if (statusEl) {
-    statusEl.hidden = true;
-    statusEl.textContent = "";
-  }
-}
-
-function renderGallery(pet) {
-  const galleryEl = document.getElementById("pet-gallery");
-  galleryEl.innerHTML = "";
-
-  const pictures = Array.isArray(pet.pictures) ? pet.pictures : [];
-  const folder = toFolderName(pet.name);
-
-  if (pictures.length === 0) {
-    showStatus("No photos yet. Check back soon!");
-    return;
-  }
-
-  pictures.forEach((filename, index) => {
-    const figure = document.createElement("figure");
-    figure.className = "pet-detail__photo";
-
-    const img = document.createElement("img");
-    img.src = `images/pets/${folder}/${filename}`;
-    img.alt = pet.name ? `${pet.name} photo ${index + 1}` : `Pet photo ${index + 1}`;
-    img.loading = index === 0 ? "eager" : "lazy";
-
-    figure.appendChild(img);
-    galleryEl.appendChild(figure);
-  });
-}
-
-function showStatus(message, isError = false) {
-  const statusEl = document.getElementById("pet-status");
-  if (!statusEl) return;
-
-  statusEl.textContent = message;
-  statusEl.hidden = false;
-  statusEl.classList.toggle("pet-message--error", Boolean(isError));
-}
-
-function formatKindLabel(kind) {
-  return String(kind).toLowerCase().replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
+  document.body.innerHTML = `
+    <div style="max-width: 800px; margin: 2rem auto; padding: 0 1rem; text-align: center;">
+      <a href="index.html" style="color: #666; text-decoration: none; margin-bottom: 1rem; display: inline-block;">&larr; Back to gallery</a>
+      <h1>${pet.name}</h1>
+      <h2>${pet.kind}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem;">
+        ${gallery}
+      </div>
+    </div>
+  `;
 }
