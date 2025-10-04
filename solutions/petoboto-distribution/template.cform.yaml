@@ -52,12 +52,7 @@ Resources:
           AcmCertificateArn:
             Fn::ImportValue: !Sub "${EnvId}-AcmCertificateArn"
           MinimumProtocolVersion: TLSv1.2_2021
-# TODO: Configure the logging bucket for log delivery in this template following https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging.html dont change code yet show me the changes to confitm
-#        Logging:
-#          Bucket:
-#            Fn::ImportValue: !Sub "${EnvId}-LogsBucketName"
-#          IncludeCookies: true
-#          Prefix: !Sub "${EnvId}/cloudfront/"
+
         Origins:
           - Id: S3Origin
             DomainName:
@@ -73,7 +68,6 @@ Resources:
             DomainName:
               Fn::ImportValue:
                 Fn::Sub: "${EnvId}-PetobotoApiDnsName"
-            
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
