@@ -49,7 +49,8 @@ sam deploy \
         HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
     --capabilities CAPABILITY_IAM \
-    --resolve-s3
+    --resolve-s3 \
+    --force-upload
 API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
 echo $API_URL
 

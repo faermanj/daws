@@ -48,6 +48,15 @@ Resources:
         Enabled: true
         PriceClass: PriceClass_100
         DefaultRootObject: index.html
+        Logging:
+          Bucket:
+            Fn::Sub:
+              - ${LogsBucket}.s3.amazonaws.com
+              - LogsBucket:
+                  Fn::ImportValue:
+                    Fn::Sub: "${EnvId}-LogsBucketName"
+          Prefix: !Sub "cloudfront/${EnvId}/"
+          IncludeCookies: false
         Aliases:
           - !Sub "*.${DomainName}"
           - !Sub "${EnvId}.${DomainName}"
@@ -137,6 +146,48 @@ Resources:
                 - BucketName:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-ResourcesBucketName"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+
+  LogsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Fn::ImportValue:
+          Fn::Sub: "${EnvId}-LogsBucketName"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontDeliveryV2PutObject
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.cloudfront.amazonaws.com
+            Action:
+              - s3:PutObject
+            Resource:
+              Fn::Sub:
+                - arn:aws:s3:::${BucketName}/${Prefix}*
+                - BucketName:
+                    Fn::ImportValue:
+                      Fn::Sub: "${EnvId}-LogsBucketName"
+                  Prefix: !Sub "cloudfront/${EnvId}/"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+          - Sid: AllowCloudFrontDeliveryV2AclBypass
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.cloudfront.amazonaws.com
+            Action:
+              - s3:PutObjectAcl
+            Resource:
+              Fn::Sub:
+                - arn:aws:s3:::${BucketName}/${Prefix}*
+                - BucketName:
+                    Fn::ImportValue:
+                      Fn::Sub: "${EnvId}-LogsBucketName"
+                  Prefix: !Sub "cloudfront/${EnvId}/"
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
