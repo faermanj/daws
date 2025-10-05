@@ -29,9 +29,10 @@ Resources:
     Properties:
       ApiId:
         Fn::ImportValue: !Sub "${EnvId}-PetobotoApiId"
-      DomainName: !Sub "${EnvId}-api.${DomainName}"
+      DomainName: !Ref ApiDomain
       Stage:
         Fn::ImportValue: !Sub "${EnvId}-PetobotoApiStageName"
+    DependsOn: ApiDomain
 
   ApiDomainARecord:
     Type: AWS::Route53::RecordSet
