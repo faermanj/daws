@@ -40,6 +40,11 @@ mvn -f ./solutions/petoboto-api-fn clean verify
 sam deploy \
     --stack-name petoboto-api-fn \
     --template-file solutions/petoboto-api-fn/sam.cform.yaml \
+    --capabilities CAPABILITY_IAM \
+    --resolve-s3
+sam deploy \
+    --stack-name petoboto-api-domain \
+    --template-file solutions/petoboto-api-fn/domain.cform.yaml \
     --parameter-overrides \
         HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
