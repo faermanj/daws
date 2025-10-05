@@ -86,7 +86,7 @@ Resources:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-ResourcesBucketName"
             OriginAccessControlId: !Ref OriginAccessControl
-            S3OriginConfig: {}
+
           - Id: APIOrigin
             # redirect to API Gateway endpoint http api on /api/*
             DomainName:
@@ -189,6 +189,7 @@ Outputs:
     Value: !Ref Distribution
     Export:
       Name: !Sub "${EnvId}-DistributionId"
+      
   DistributionDomainName:
     Description: CloudFront distribution domain name.
     Value: !GetAtt Distribution.DomainName
