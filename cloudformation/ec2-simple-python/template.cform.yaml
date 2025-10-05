@@ -6,8 +6,8 @@
 
 # echo "http://$PUBLIC_IP/"
 # echo "http://$PUBLIC_IP/tuna-10mb.jpg"
-# time curl "http://$PUBLIC_IP/tuna-10mb.jpg" -o /dev/null
-# ab -k -n 655350 -c 256 -r "http://$PUBLIC_IP/tuna-10mb.jpg"
+# time curl "http://$PUBLIC_IP/tuna-1.png" -o /dev/null
+# ab -k -n 655350 -c 256 -r "http://$PUBLIC_IP/tuna-1.png"
 
 Description: EC2 instance running a Python HTTP server
 
