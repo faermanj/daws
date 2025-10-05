@@ -68,16 +68,16 @@ DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
     --stack-name petoboto-distribution \
     --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue" \
     --output text)
-aws cloudfront create-invalidation \
-    --distribution-id $DISTRIBUTION_ID \
-    --paths "/*"
-
 aws cloudformation deploy \
     --stack-name petoboto-alias \
     --parameter-overrides \
         HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
     --template-file solutions/petoboto-distribution/alias.cform.yaml
+
+aws cloudfront create-invalidation \
+    --distribution-id $DISTRIBUTION_ID \
+    --paths "/*"
 
 # Suggested Tests
 HOST=${ENV_ID}.${DOMAIN_NAME}

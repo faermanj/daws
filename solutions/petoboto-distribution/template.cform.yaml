@@ -30,11 +30,15 @@ Parameters:
     Description: "The domain name for the Distribution"
 
 Resources:
-  OriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
     Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub "OAI for CloudFront distribution"
+      OriginAccessControlConfig:
+        Name: !Sub "${EnvId}-oac"
+        Description: !Sub "OAC for CloudFront distribution ${EnvId}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
 
   Distribution:
     Type: AWS::CloudFront::Distribution
@@ -61,8 +65,8 @@ Resources:
                 - BucketName:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-ResourcesBucketName"
-            S3OriginConfig:
-              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${OriginAccessIdentity}"
+            OriginAccessControlId: !Ref OriginAccessControl
+            S3OriginConfig: {}
           - Id: APIOrigin
             # redirect to API Gateway endpoint http api on /api/*
             DomainName:
@@ -124,9 +128,7 @@ Resources:
           - Sid: AllowCloudFrontServicePrincipalReadOnly
             Effect: Allow
             Principal:
-            #  AWS: "*"
               Service: cloudfront.amazonaws.com   
-            #  CanonicalUser: !GetAtt OriginAccessIdentity.S3CanonicalUserId
             Action:
               - s3:GetObject
             Resource:
@@ -135,6 +137,9 @@ Resources:
                 - BucketName:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-ResourcesBucketName"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
 
 Outputs:
   DistributionId:

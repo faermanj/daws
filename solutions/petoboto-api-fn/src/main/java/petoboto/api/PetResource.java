@@ -10,6 +10,7 @@ import static petoboto.api.PetKind.*;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import jakarta.json.JsonObject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.POST;
@@ -22,7 +23,6 @@ import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.BadRequestException;
 
 @ApplicationScoped
-@Path("/pets")
 public class PetResource {
 
     @Transactional
@@ -40,6 +40,7 @@ public class PetResource {
     /** Lists all pets.
      * curl -s http://127.0.0.1:8080/pets | jq 
      */
+    @Path("/pets")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Pet> getList() {
@@ -51,7 +52,7 @@ public class PetResource {
      * curl -s http://127.0.0.1:8080/pets/1 | jq
      */
     @GET
-    @Path("/{id}")
+    @Path("/pet/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Pet getOne(@PathParam("id") Long id) {
         Pet pet = Pet.findById(id);
@@ -63,20 +64,17 @@ public class PetResource {
      * curl -X POST http://127.0.0.1:8080/pets -H 'Content-Type: application/json' -d '{"name":"Sushi","species":"DOG"}'
      */
     @POST
+    @Path("/pet/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response create(CreatePetRequest request) {
-        if (request == null || request.name == null || request.species == null
-                || request.name.isBlank() || request.species.isBlank()) {
-            throw new BadRequestException("name and species are required");
-        }
-
+    public Response create(JsonObject request) {
+        var name = request.getString("name");
+        var species = request.getString("species");
         Pet pet = new Pet();
-        pet.setName(request.name);
-        pet.setKind(parseSpecies(request.species));
+        pet.setName(name);
+        pet.setKind(parseSpecies(species));
         pet.persist();
-
         return Response.status(Status.CREATED).entity(pet).build();
     }
 
@@ -96,7 +94,7 @@ public class PetResource {
      * curl -X PUT http://127.0.0.1:8080/pets/1 -H 'Content-Type: application/json' -d '{"name":"Sushi","kind":"DOG"}'
      */
     @PUT
-    @Path("/{id}")
+    @Path("/pet/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
@@ -113,7 +111,7 @@ public class PetResource {
      * curl -X DELETE http://127.0.0.1:8080/pets/1
      */
     @DELETE
-    @Path("/{id}")
+    @Path("/pet/{id}")
     @Transactional
     public Response delete(@PathParam("id") Long id) {
         Pet pet = Pet.findById(id);
@@ -122,8 +120,4 @@ public class PetResource {
         return Response.noContent().build();
     }
 
-    public static class CreatePetRequest {
-        public String name;
-        public String species;
-    }
 }
