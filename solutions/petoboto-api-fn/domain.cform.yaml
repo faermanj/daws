@@ -30,8 +30,7 @@ Resources:
       ApiId:
         Fn::ImportValue: !Sub "${EnvId}-PetobotoApiId"
       DomainName: !Ref ApiDomain
-      Stage:
-        Fn::ImportValue: !Sub "${EnvId}-PetobotoApiStageName"
+      Stage: "$default"
     DependsOn: ApiDomain
 
   ApiDomainARecord:
@@ -52,6 +51,6 @@ Outputs:
       Name: !Sub "${EnvId}-ApiDomain"
   ApiDomainUrl:
     Description: Base URL using API domain
-    Value: !Sub "https://${DomainName}/"
+    Value: !Sub "https://${EnvId}-api.${DomainName}/"
     Export:
       Name: !Sub "${EnvId}-ApiDomainUrl"

@@ -22,6 +22,15 @@ Resources:
 
   LogsBucket:
     Type: AWS::S3::Bucket
+    Properties:
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
 Outputs:
   ResourcesBucketName:
@@ -30,7 +39,7 @@ Outputs:
     Export:
       Name: !Sub '${EnvId}-ResourcesBucketName'
 
-  LogsBucketNameName:
+  LogsBucketName:
     Description: Logs bucket name.
     Value: !Ref LogsBucket
     Export:

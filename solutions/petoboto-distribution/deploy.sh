@@ -41,16 +41,16 @@ sam deploy \
     --stack-name petoboto-api-fn \
     --template-file solutions/petoboto-api-fn/sam.cform.yaml \
     --capabilities CAPABILITY_IAM \
-    --resolve-s3
-sam deploy \
+    --resolve-s3 \
+    --force-upload \
+    --no-confirm-changeset \
+    --no-fail-on-empty-changeset 
+aws cloudformation deploy \
     --stack-name petoboto-api-domain \
     --template-file solutions/petoboto-api-fn/domain.cform.yaml \
     --parameter-overrides \
         HostedZoneId=$ZONE_ID \
-        DomainName=$DOMAIN_NAME \
-    --capabilities CAPABILITY_IAM \
-    --resolve-s3 \
-    --force-upload
+        DomainName=$DOMAIN_NAME 
 API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
 echo $API_URL
 

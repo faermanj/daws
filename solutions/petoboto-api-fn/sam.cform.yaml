@@ -15,13 +15,6 @@ Parameters:
     Description: Environment identifier used for cross-stack imports.
 
 Resources:
-  ApiStage:
-    Type: AWS::ApiGatewayV2::Stage
-    Properties:
-      ApiId: !Ref ServerlessHttpApi
-      StageName: !Ref EnvId
-      AutoDeploy: true
-
   ApiFn:
     Type: AWS::Serverless::Function
     Properties:
@@ -74,7 +67,7 @@ Outputs:
     
   PetobotoApiStageName:
     Description: API stage name
-    Value: !Ref ApiStage
+    Value: "$default"
     Export:
       Name: !Sub "${EnvId}-PetobotoApiStageName"
 

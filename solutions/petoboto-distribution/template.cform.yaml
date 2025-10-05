@@ -28,8 +28,24 @@ Parameters:
   DomainName:
     Type: String
     Description: "The domain name for the Distribution"
+  
+  LogCookies:
+    Type: String
+    Default: "true"
 
 Resources:
+  LogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -49,14 +65,9 @@ Resources:
         PriceClass: PriceClass_100
         DefaultRootObject: index.html
         Logging:
-          Bucket:
-            Fn::Sub:
-              - ${LogsBucket}.s3.amazonaws.com
-              - LogsBucket:
-                  Fn::ImportValue:
-                    Fn::Sub: "${EnvId}-LogsBucketName"
+          Bucket: !Sub "${LogsBucket}.s3.amazonaws.com"
           Prefix: !Sub "cloudfront/${EnvId}/"
-          IncludeCookies: false
+          IncludeCookies: !Ref LogCookies
         Aliases:
           - !Sub "*.${DomainName}"
           - !Sub "${EnvId}.${DomainName}"
@@ -153,44 +164,24 @@ Resources:
   LogsBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket:
-        Fn::ImportValue:
-          Fn::Sub: "${EnvId}-LogsBucketName"
+      Bucket: !Ref LogsBucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Sid: AllowCloudFrontDeliveryV2PutObject
             Effect: Allow
             Principal:
-              Service: delivery.logs.cloudfront.amazonaws.com
+              Service: delivery.logs.amazonaws.com
             Action:
               - s3:PutObject
             Resource:
-              Fn::Sub:
-                - arn:aws:s3:::${BucketName}/${Prefix}*
-                - BucketName:
-                    Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-LogsBucketName"
-                  Prefix: !Sub "cloudfront/${EnvId}/"
+              Fn::Sub: "arn:aws:s3:::${LogsBucket}/cloudfront/${EnvId}/*"
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
-          - Sid: AllowCloudFrontDeliveryV2AclBypass
-            Effect: Allow
-            Principal:
-              Service: delivery.logs.cloudfront.amazonaws.com
-            Action:
-              - s3:PutObjectAcl
-            Resource:
-              Fn::Sub:
-                - arn:aws:s3:::${BucketName}/${Prefix}*
-                - BucketName:
-                    Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-LogsBucketName"
-                  Prefix: !Sub "cloudfront/${EnvId}/"
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+                s3:x-amz-acl: bucket-owner-full-control
+                aws:SourceAccount: !Sub "${AWS::AccountId}"
+              ArnLike:
+                aws:SourceArn: !Sub "arn:aws:logs:us-east-1:${AWS::AccountId}:delivery-source/*"
 
 Outputs:
   DistributionId:
