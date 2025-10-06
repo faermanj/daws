@@ -25,9 +25,9 @@ h1, h2 {
 }
 
 h2 {
-  font-weight: normal;
-  letter-spacing: 0.4em;
-  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  font-size: 1.1rem;
   color: #D8DEE9; /* subtle text */
 }
 
@@ -91,4 +91,10 @@ img {
 :focus-visible {
   outline: 2px solid #88C0D0;
   outline-offset: 2px;
+}
+
+/* Global heading adjustments */
+h1 {
+  font-size: 2.25rem;
+  line-height: 1.2;
 }

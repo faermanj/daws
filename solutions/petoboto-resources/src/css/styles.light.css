@@ -15,9 +15,9 @@ h1, h2 {
 }
 
 h2 {
-  font-weight: normal;
-  letter-spacing: 0.4em;
-  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  font-size: 1.1rem;
   color: #666;
 }
 
@@ -65,4 +65,10 @@ img {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
+}
+
+/* Global heading adjustments */
+h1 {
+  font-size: 2.25rem;
+  line-height: 1.2;
 }
