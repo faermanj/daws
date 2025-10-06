@@ -1,4 +1,4 @@
-Description: ALB Alias Record
+Description: Alias Record
 
 Parameters:
   EnvId:
@@ -13,12 +13,17 @@ Parameters:
     Type: String
     Description: "The domain name for the ALB"
 
+  Color:
+    Type: String
+    Default: flicts
+    Description: Deployment color (e.g., blue/green) used to compose the alias name.
+
 Resources:
   DistributionAliasRecord:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref HostedZoneId
-      Name: !Sub "${EnvId}.${DomainName}"
+      Name: !Sub "${EnvId}-${Color}.${DomainName}"
       Type: A
       AliasTarget:
         DNSName: 

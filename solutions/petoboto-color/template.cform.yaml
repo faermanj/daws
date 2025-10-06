@@ -29,6 +29,11 @@ Parameters:
     Type: String
     Description: "The domain name for the Distribution"
   
+  Color:
+    Type: String
+    Default: flicts
+    Description: Deployment color (e.g., blue/green) used to compose the alias name.
+  
   LogCookies:
     Type: String
     Default: "true"
@@ -70,7 +75,7 @@ Resources:
           IncludeCookies: !Ref LogCookies
         Aliases:
           - !Sub "*.${DomainName}"
-          - !Sub "${EnvId}.${DomainName}"
+          - !Sub "${EnvId}-${Color}.${DomainName}"
         ViewerCertificate:
           SslSupportMethod: sni-only
           AcmCertificateArn:
@@ -86,7 +91,7 @@ Resources:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-ResourcesBucketName"
             OriginAccessControlId: !Ref OriginAccessControl
-
+            S3OriginConfig: {}
           - Id: APIOrigin
             # redirect to API Gateway endpoint http api on /api/*
             DomainName:

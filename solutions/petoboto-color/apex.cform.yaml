@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Route 53 apex weighted alias records to two CloudFront distributions (A and AAAA)
+
+# Example usage:
+#   BLUE_DIST=$(aws cloudformation describe-stacks --stack-name cloudfront-blue \
+#     --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" --output text)
+#   GREEN_DIST=$(aws cloudformation describe-stacks --stack-name cloudfront-green \
+#     --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" --output text)
+#   aws cloudformation deploy \
+#     --stack-name apex-weighted \
+#     --template-file solutions/petoboto-color/apex.cform.yaml \
+#     --parameter-overrides \
+#       EnvId=project \
+#       HostedZoneId=Z123456ABCDEFG \
+#       DomainName=example.com \
+#       ColorA=blue ColorB=green \
+#       WeightA=50 WeightB=50
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used for output export names.
+
+  HostedZoneId:
+    Type: String
+    Description: The ID of the existing Route 53 Hosted Zone for the apex domain.
+
+  DomainName:
+    Type: String
+    Description: The apex/root domain (e.g., example.com).
+
+  ColorA:
+    Type: String
+    Description: Name of the first color (e.g., blue). Will target ${EnvId}-${ColorA}.${DomainName}.
+
+  ColorB:
+    Type: String
+    Description: Name of the second color (e.g., green). Will target ${EnvId}-${ColorB}.${DomainName}.
+
+  # Set identifiers will use ColorA/ColorB values directly.
+
+  WeightA:
+    Type: Number
+    Default: 50
+    MinValue: 0
+    MaxValue: 255
+    Description: Weight for the first record. Higher values receive more traffic.
+
+  WeightB:
+    Type: Number
+    Default: 50
+    MinValue: 0
+    MaxValue: 255
+    Description: Weight for the second record. Higher values receive more traffic.
+
+  # No CloudFrontHostedZoneId needed when aliasing to another record in the same hosted zone.
+
+Resources:
+  # Weighted A records (apex) -> CloudFront distributions
+  ApexAWeightedRecordA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      SetIdentifier: !Ref ColorA
+      Weight: !Ref WeightA
+      AliasTarget:
+        DNSName: !Sub "${EnvId}-${ColorA}.${DomainName}"
+        HostedZoneId: !Ref HostedZoneId
+        EvaluateTargetHealth: false
+
+  ApexAWeightedRecordB:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      SetIdentifier: !Ref ColorB
+      Weight: !Ref WeightB
+      AliasTarget:
+        DNSName: !Sub "${EnvId}-${ColorB}.${DomainName}"
+        HostedZoneId: !Ref HostedZoneId
+        EvaluateTargetHealth: false
+
+  # Weighted AAAA records (apex) -> CloudFront distributions (IPv6)
+  ApexAAAAWeightedRecordA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: AAAA
+      SetIdentifier: !Ref ColorA
+      Weight: !Ref WeightA
+      AliasTarget:
+        DNSName: !Sub "${EnvId}-${ColorA}.${DomainName}"
+        HostedZoneId: !Ref HostedZoneId
+        EvaluateTargetHealth: false
+
+  ApexAAAAWeightedRecordB:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: AAAA
+      SetIdentifier: !Ref ColorB
+      Weight: !Ref WeightB
+      AliasTarget:
+        DNSName: !Sub "${EnvId}-${ColorB}.${DomainName}"
+        HostedZoneId: !Ref HostedZoneId
+        EvaluateTargetHealth: false
+
+Outputs:
+  ApexRecordName:
+    Description: The apex record name managed by this stack.
+    Value: !Ref DomainName
+    Export:
+      Name: !Sub "${EnvId}-ApexRecordName"
+

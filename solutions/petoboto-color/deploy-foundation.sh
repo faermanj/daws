@@ -7,6 +7,12 @@ ENV_ID=${ENV_ID:-"project"}
 DOMAIN_NAME=${DOMAIN_NAME:-"petoboto.com"}
 ZONE_ID=${ZONE_ID:-"Z01386901AXGFXHXKIDJX"}
 DB_PASSWORD=${DB_PASSWORD:-"Masterkey123"}
+# PAINT IT BLACK ;)
+
+echo "Deploying foundation:"
+echo "  ENV_ID=$ENV_ID"
+echo "  DOMAIN_NAME=$DOMAIN_NAME"
+echo "  ZONE_ID=$ZONE_ID"
 
 # TLS Certificate
 aws cloudformation deploy \

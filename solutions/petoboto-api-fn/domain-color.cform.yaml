@@ -5,6 +5,10 @@ Parameters:
     Type: String
     Default: project
     Description: Environment identifier used for cross-stack imports.
+  Color:
+    Type: String
+    Default: blue
+    Description: Color identifier used to suffix cross-stack imports and exports.
 
   DomainName:
     Type: String
@@ -28,7 +32,7 @@ Resources:
     Type: AWS::ApiGatewayV2::ApiMapping
     Properties:
       ApiId:
-        Fn::ImportValue: !Sub "${EnvId}-PetobotoApiId"
+        Fn::ImportValue: !Sub "${EnvId}-${Color}-PetobotoApiId"
       DomainName: !Ref ApiDomain
       Stage: "$default"
     DependsOn: ApiDomain
@@ -48,9 +52,9 @@ Outputs:
     Description: API domain name
     Value: !Ref DomainName
     Export:
-      Name: !Sub "${EnvId}-ApiDomain"
+      Name: !Sub "${EnvId}-${Color}-ApiDomain"
   ApiDomainUrl:
     Description: Base URL using API domain
     Value: !Sub "https://${EnvId}-api.${DomainName}/"
     Export:
-      Name: !Sub "${EnvId}-ApiDomainUrl"
+      Name: !Sub "${EnvId}-${Color}-ApiDomainUrl"
