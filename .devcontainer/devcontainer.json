@@ -3,9 +3,11 @@
   "image": "mcr.microsoft.com/devcontainers/base",
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/audacioustux/devcontainers/graalvm:1": {
-      "java": "25"
+    "ghcr.io/devcontainers/features/java:1": {
+      "jdkDistro": "graalce"
     },
+    "ghcr.io/devcontainers-extra/features/maven-sdkman:2"	: {},
+    "ghcr.io/devcontainers-extra/features/quarkus-sdkman:2": {},
     "ghcr.io/devcontainers/features/python:1": {},
     "ghcr.io/devcontainers/features/aws-cli:1": {},
     "ghcr.io/customink/codespaces-features/sam-cli:1": {},
@@ -13,7 +15,6 @@
     "ghcr.io/devcontainers-extra/features/amplify-cli:2": {},
     "ghcr.io/rails/devcontainer/features/postgres-client:1.1.3": {},
     "ghcr.io/devcontainers/features/mysql-client:1": {},
-    "ghcr.io/devcontainers/features/quarkus:1": {},
     "ghcr.io/devcontainers/features/common-utils:2": {},
     "ghcr.io/joshspicer/more-features/cowsay:1": {}
   },
