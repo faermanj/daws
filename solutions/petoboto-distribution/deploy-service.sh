@@ -3,19 +3,12 @@ set -e
 DIR=$(cd $(dirname $0) && pwd)
 pushd $DIR/../..
 
+# Settings Variables
 ENV_ID=${ENV_ID:-"project"}
 DOMAIN_NAME=${DOMAIN_NAME:-"petoboto.com"}
 ZONE_ID=${ZONE_ID:-"Z01386901AXGFXHXKIDJX"}
 DB_PASSWORD=${DB_PASSWORD:-"Masterkey123"}
-
-# TLS Certificate
-aws cloudformation deploy \
-    --stack-name acm-simple \
-    --template-file cloudformation/acm-simple/template.cform.yaml \
-    --parameter-overrides \
-        HostedZoneId=$ZONE_ID \
-        DomainName=$DOMAIN_NAME \
-        EnvId=$ENV_ID
+COLOR=${COLOR:-"blue"}
 
 # Resources Bucket
 aws cloudformation deploy \
@@ -27,17 +20,11 @@ BUCKET_NAME=$(aws cloudformation describe-stacks \
     --query "Stacks[0].Outputs[?OutputKey=='ResourcesBucketName'].OutputValue" \
     --output text)
 echo BUCKET_NAME=$BUCKET_NAME
+# if color VARIABLE is defined, copy color style file before sync
+if [ -n "$COLOR" ]; then
+    cp ./solutions/petoboto-resources/src/css/styles.$COLOR.css cp ./solutions/petoboto-resources/src/css/styles.css
+fi
 aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME/ 
-
-# VPC, Lambda and API
-aws cloudformation deploy \
-    --stack-name vpc-3ha \
-    --template-file cloudformation/vpc-3ha/template.cform.yaml \
-    --parameter-overrides EnvId=$ENV_ID
-aws cloudformation deploy \
-    --stack-name rds-mysql-sls \
-    --template-file cloudformation/rds-mysql-sls/template.cform.yaml \
-    --parameter-overrides DBPassword=$DB_PASSWORD EnvId=$ENV_ID
 
 mvn -f ./solutions/petoboto-api-fn clean verify
 sam deploy \
@@ -55,7 +42,8 @@ aws cloudformation deploy \
     --parameter-overrides \
         HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
-        EnvId=$ENV_ID
+        EnvId=$ENV_ID \
+        Color=$COLOR
 API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
 echo $API_URL
 
@@ -65,6 +53,7 @@ aws cloudformation deploy \
     --parameter-overrides \
         DomainName=$DOMAIN_NAME \
         EnvId=$ENV_ID \
+        Color=$COLOR \
     --template-file solutions/petoboto-distribution/template.cform.yaml
 DISTRIBUTION_DOMAIN=$(aws cloudformation describe-stacks \
     --stack-name petoboto-distribution \
@@ -79,6 +68,7 @@ aws cloudformation deploy \
     --stack-name petoboto-alias \
     --parameter-overrides \
         HostedZoneId=$ZONE_ID \
+        Color=$COLOR \
         DomainName=$DOMAIN_NAME \
         EnvId=$ENV_ID \
     --template-file solutions/petoboto-distribution/alias.cform.yaml
