@@ -20,8 +20,10 @@ echo "  ZONE_ID=$ZONE_ID"
 # Resources Bucket
 aws cloudformation deploy \
     --stack-name petoboto-resources-$COLOR \
-    --template-file solutions/petoboto-resources/bucket.cform.yaml \
-    --parameter-overrides EnvId=$ENV_ID
+    --template-file solutions/petoboto-resources/bucket-color.cform.yaml \
+    --parameter-overrides \
+        EnvId=$ENV_ID \
+        Color=$COLOR
 BUCKET_NAME=$(aws cloudformation describe-stacks \
     --stack-name petoboto-resources-$COLOR \
     --query "Stacks[0].Outputs[?OutputKey=='ResourcesBucketName'].OutputValue" \
@@ -35,13 +37,15 @@ aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME/
 mvn -f ./solutions/petoboto-api-fn clean verify
 sam deploy \
     --stack-name petoboto-api-fn-$COLOR \
-    --template-file solutions/petoboto-api-fn/sam.cform.yaml \
+    --template-file solutions/petoboto-api-fn/sam-color.cform.yaml \
     --capabilities CAPABILITY_IAM \
     --resolve-s3 \
     --force-upload \
     --no-confirm-changeset \
     --no-fail-on-empty-changeset \
-    --parameter-overrides EnvId=$ENV_ID
+    --parameter-overrides \
+        EnvId=$ENV_ID \
+        Color=$COLOR
 aws cloudformation deploy \
     --stack-name petoboto-api-domain-color-$COLOR \
     --template-file solutions/petoboto-api-fn/domain-color.cform.yaml \
@@ -80,9 +84,12 @@ aws cloudformation deploy \
         EnvId=$ENV_ID
 aws cloudformation deploy \
     --stack-name petoboto-healthcheck-$COLOR \
+    --template-file solutions/petoboto-color/healthcheck.cform.yaml \
+
     --parameter-overrides \
         EnvId=$ENV_ID \
-    --template-file solutions/petoboto-color/alihealthcheckas.cform.yaml
+        Color=$COLOR \
+        DomainName=$DOMAIN_NAME \
 
 aws cloudfront create-invalidation \
     --distribution-id $DISTRIBUTION_ID \

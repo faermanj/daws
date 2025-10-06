@@ -27,7 +27,7 @@ Resources:
       Type: A
       AliasTarget:
         DNSName: 
-          Fn::ImportValue: !Sub "${EnvId}-DistributionDomainName"
+          Fn::ImportValue: !Sub "${EnvId}-${Color}-DistributionDomainName"
         HostedZoneId: Z2FDTNDATAQYW2   # CloudFront hosted zone ID (global)
         EvaluateTargetHealth: false
 
@@ -36,4 +36,4 @@ Outputs:
     Description: Name of the CloudFront Distribution Alias Record
     Value: !Ref DistributionAliasRecord
     Export:
-      Name: !Sub "${EnvId}-DistributionAliasName"
+      Name: !Sub "${EnvId}-${Color}-DistributionAliasName"

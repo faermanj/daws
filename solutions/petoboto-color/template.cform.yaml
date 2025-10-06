@@ -89,14 +89,14 @@ Resources:
                 - ${BucketName}.s3.${AWS::Region}.amazonaws.com
                 - BucketName:
                     Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-ResourcesBucketName"
+                      Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
             OriginAccessControlId: !Ref OriginAccessControl
             S3OriginConfig: {}
           - Id: APIOrigin
             # redirect to API Gateway endpoint http api on /api/*
             DomainName:
               Fn::ImportValue:
-                Fn::Sub: "${EnvId}-PetobotoApiDnsName"
+                Fn::Sub: "${EnvId}-${Color}-PetobotoApiDnsName"
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
@@ -146,7 +146,7 @@ Resources:
     Properties:
       Bucket:
         Fn::ImportValue:
-          Fn::Sub: "${EnvId}-ResourcesBucketName"
+          Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -161,7 +161,7 @@ Resources:
                 - arn:aws:s3:::${BucketName}/*
                 - BucketName:
                     Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-ResourcesBucketName"
+                      Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
@@ -193,10 +193,10 @@ Outputs:
     Description: CloudFront distribution identifier.
     Value: !Ref Distribution
     Export:
-      Name: !Sub "${EnvId}-DistributionId"
+      Name: !Sub "${EnvId}-${Color}-DistributionId"
       
   DistributionDomainName:
     Description: CloudFront distribution domain name.
     Value: !GetAtt Distribution.DomainName
     Export:
-      Name: !Sub "${EnvId}-DistributionDomainName"
+      Name: !Sub "${EnvId}-${Color}-DistributionDomainName"

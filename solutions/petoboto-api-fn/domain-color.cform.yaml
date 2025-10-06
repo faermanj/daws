@@ -5,6 +5,7 @@ Parameters:
     Type: String
     Default: project
     Description: Environment identifier used for cross-stack imports.
+    
   Color:
     Type: String
     Default: blue
@@ -22,7 +23,7 @@ Resources:
   ApiDomain:
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
-      DomainName: !Sub "${EnvId}-api.${DomainName}"
+      DomainName: !Sub "${EnvId}-${Color}-api.${DomainName}"
       DomainNameConfigurations:
         - CertificateArn:
             Fn::ImportValue: !Sub "${EnvId}-AcmCertificateArn"
@@ -41,7 +42,7 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref HostedZoneId
-      Name: !Sub "${EnvId}-api.${DomainName}"
+      Name: !Sub "${EnvId}-${Color}-api.${DomainName}"
       Type: A
       AliasTarget:
         DNSName: !GetAtt ApiDomain.RegionalDomainName
@@ -53,6 +54,7 @@ Outputs:
     Value: !Ref DomainName
     Export:
       Name: !Sub "${EnvId}-${Color}-ApiDomain"
+
   ApiDomainUrl:
     Description: Base URL using API domain
     Value: !Sub "https://${EnvId}-api.${DomainName}/"

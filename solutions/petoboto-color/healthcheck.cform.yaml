@@ -55,7 +55,7 @@ Resources:
         MeasureLatency: true
       HealthCheckTags:
         - Key: Name
-          Value: !Sub "${EnvId}-api-hc"
+          Value: !Sub "${EnvId}-${Color}-api-hc"
         - Key: Env
           Value: !Ref EnvId
 
@@ -64,4 +64,4 @@ Outputs:
     Description: Route 53 HealthCheck identifier for the API HTTPS check.
     Value: !Ref ApiHttpsHealthCheck
     Export:
-      Name: !Sub "${EnvId}-ApiHealthCheckId"
+      Name: !Sub "${EnvId}-${Color}-ApiHealthCheckId"
