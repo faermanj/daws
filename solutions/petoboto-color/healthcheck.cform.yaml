@@ -11,11 +11,6 @@ Parameters:
     Type: String
     Description: The apex/root domain (e.g., example.com) used with the EnvId subdomain.
 
-  Color:
-    Type: String
-    Default: flicts
-    Description: Deployment color (e.g., blue/green) used to compose the FQDN.
-
   HealthCheckPath:
     Type: String
     Default: /api/_hc
@@ -46,7 +41,7 @@ Resources:
     Properties:
       HealthCheckConfig:
         Type: HTTPS
-        FullyQualifiedDomainName: !Sub "${EnvId}-${Color}.${DomainName}"
+        FullyQualifiedDomainName: !Sub "${EnvId}.${DomainName}"
         Port: !Ref HealthCheckPort
         ResourcePath: !Ref HealthCheckPath
         RequestInterval: !Ref RequestInterval
@@ -55,7 +50,7 @@ Resources:
         MeasureLatency: true
       HealthCheckTags:
         - Key: Name
-          Value: !Sub "${EnvId}-${Color}-api-hc"
+          Value: !Sub "${EnvId}-api-hc"
         - Key: Env
           Value: !Ref EnvId
 
@@ -64,4 +59,4 @@ Outputs:
     Description: Route 53 HealthCheck identifier for the API HTTPS check.
     Value: !Ref ApiHttpsHealthCheck
     Export:
-      Name: !Sub "${EnvId}-${Color}-ApiHealthCheckId"
+      Name: !Sub "${EnvId}-ApiHealthCheckId"

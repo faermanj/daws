@@ -1,0 +1,100 @@
+Description: Route 53 weighted aliases
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used for output export names.
+
+  HostedZoneId:
+    Type: String
+    Description: The ID of the existing Route 53 Hosted Zone for the apex domain.
+
+  DomainName:
+    Type: String
+    Description: The apex/root domain
+
+  ColorA:
+    Type: String
+    Description: Name of the first color 
+
+  ColorB:
+    Type: String
+    Description: Name of the second color 
+    
+  WeightA:
+    Type: Number
+    Default: 88
+    Description: Weight for the first record. Higher values receive more traffic.
+
+  WeightB:
+    Type: Number
+    Default: 22
+    Description: Weight for the second record. Higher values receive more traffic.
+
+  StaticZoneId:
+    Type: String
+    Default: Z3AQBSTGFYJSTF
+    Description: The hosted zone ID for S3 static websites. Default is for us-east-1.
+
+Resources:
+  StaticColorA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub "${EnvId}-static.${DomainName}"
+      Type: A
+      SetIdentifier: !Sub "static-${ColorA}"
+      Weight: !Ref WeightA
+      AliasTarget:
+        DNSName:
+          Fn::ImportValue:
+            Fn::Sub: "${EnvId}-${ColorA}-WebsiteURL"
+        HostedZoneId: !Ref StaticZoneId
+
+  StaticColorB:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub "${EnvId}-static.${DomainName}"
+      Type: A
+      SetIdentifier: !Sub "static-${ColorB}"
+      Weight: !Ref WeightB
+      AliasTarget:
+        DNSName:
+          Fn::ImportValue:
+            Fn::Sub: "${EnvId}-${ColorB}-WebsiteURL"
+        HostedZoneId: !Ref StaticZoneId
+
+  ApiColorA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub "${EnvId}-api.${DomainName}"
+      Type: CNAME
+      TTL: 300
+      SetIdentifier: !Sub "api-${ColorA}"
+      Weight: !Ref WeightA
+      ResourceRecords:
+        - Fn::ImportValue:
+            Fn::Sub: "${EnvId}-${ColorA}-DistributionDomainName"
+
+  ApiColorB:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub "${EnvId}-api.${DomainName}"
+      Type: CNAME
+      TTL: 300
+      SetIdentifier: !Sub "api-${ColorB}"
+      Weight: !Ref WeightB
+      ResourceRecords:
+        - Fn::ImportValue:
+            Fn::Sub: "${EnvId}-${ColorB}-DistributionDomainName"
+
+Outputs:
+  ApexRecordName:
+    Description: The apex record name managed by this stack.
+    Value: !Ref DomainName
+    Export:
+      Name: !Sub "${EnvId}-ApexRecordName"

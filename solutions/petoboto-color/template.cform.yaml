@@ -29,14 +29,23 @@ Parameters:
     Type: String
     Description: "The domain name for the Distribution"
   
-  Color:
-    Type: String
-    Default: flicts
-    Description: Deployment color (e.g., blue/green) used to compose the alias name.
-  
   LogCookies:
     Type: String
     Default: "true"
+
+  PriceClass:
+    Type: String
+    Default: PriceClass_All
+    AllowedValues:
+      - PriceClass_100
+      - PriceClass_200
+      - PriceClass_All
+    Description: "The price class for the CloudFront distribution." 
+  
+  DefaultRootObject:
+    Type: String
+    Default: index.html
+    Description: "The default root object for the CloudFront distribution."  
 
 Resources:
   LogsBucket:
@@ -67,15 +76,15 @@ Resources:
       DistributionConfig:
         Comment: !Sub "CloudFront distribution for ${EnvId}"
         Enabled: true
-        PriceClass: PriceClass_100
-        DefaultRootObject: index.html
+        PriceClass: !Ref PriceClass
+        DefaultRootObject: !Ref DefaultRootObject
         Logging:
           Bucket: !Sub "${LogsBucket}.s3.amazonaws.com"
-          Prefix: !Sub "cloudfront/${EnvId}/"
+          Prefix: !Sub "${EnvId}/cloudfront/"
           IncludeCookies: !Ref LogCookies
         Aliases:
-          - !Sub "*.${DomainName}"
-          - !Sub "${EnvId}-${Color}.${DomainName}"
+          - !Sub "${EnvId}.${DomainName}"
+
         ViewerCertificate:
           SslSupportMethod: sni-only
           AcmCertificateArn:
@@ -83,20 +92,14 @@ Resources:
           MinimumProtocolVersion: TLSv1.2_2021
 
         Origins:
-          - Id: S3Origin
-            DomainName:
-              Fn::Sub:
-                - ${BucketName}.s3.${AWS::Region}.amazonaws.com
-                - BucketName:
-                    Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
-            OriginAccessControlId: !Ref OriginAccessControl
-            S3OriginConfig: {}
+          - Id: StaticOrigin
+            DomainName: !Sub "${EnvId}-static.${DomainName}"
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: http-only
           - Id: APIOrigin
-            # redirect to API Gateway endpoint http api on /api/*
-            DomainName:
-              Fn::ImportValue:
-                Fn::Sub: "${EnvId}-${Color}-PetobotoApiDnsName"
+            DomainName: !Sub "${EnvId}-api.${DomainName}"
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
@@ -122,7 +125,7 @@ Resources:
               Cookies:
                 Forward: all
         DefaultCacheBehavior:
-          TargetOriginId: S3Origin
+          TargetOriginId: StaticOrigin
           ViewerProtocolPolicy: https-only
           AllowedMethods:
             - HEAD
@@ -141,30 +144,6 @@ Resources:
             Cookies:
               Forward: all
 
-  ResourcesBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket:
-        Fn::ImportValue:
-          Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: AllowCloudFrontServicePrincipalReadOnly
-            Effect: Allow
-            Principal:
-              Service: cloudfront.amazonaws.com   
-            Action:
-              - s3:GetObject
-            Resource:
-              Fn::Sub:
-                - arn:aws:s3:::${BucketName}/*
-                - BucketName:
-                    Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
 
   LogsBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -193,10 +172,10 @@ Outputs:
     Description: CloudFront distribution identifier.
     Value: !Ref Distribution
     Export:
-      Name: !Sub "${EnvId}-${Color}-DistributionId"
+      Name: !Sub "${EnvId}-DistributionId"
       
   DistributionDomainName:
     Description: CloudFront distribution domain name.
     Value: !GetAtt Distribution.DomainName
     Export:
-      Name: !Sub "${EnvId}-${Color}-DistributionDomainName"
+      Name: !Sub "${EnvId}-DistributionDomainName"

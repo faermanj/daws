@@ -73,8 +73,7 @@ Resources:
           Prefix: !Sub "cloudfront/${EnvId}/"
           IncludeCookies: !Ref LogCookies
         Aliases:
-          - !Sub "*.${DomainName}"
-          - !Sub  
+          - !Sub "${EnvId}.${DomainName}"
         ViewerCertificate:
           SslSupportMethod: sni-only
           AcmCertificateArn:
@@ -91,6 +90,7 @@ Resources:
                       Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
             OriginAccessControlId: !Ref OriginAccessControl
             S3OriginConfig: {}
+
           - Id: APIOrigin
             # redirect to API Gateway endpoint http api on /api/*
             DomainName:

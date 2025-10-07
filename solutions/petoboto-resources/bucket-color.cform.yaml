@@ -23,18 +23,33 @@ Resources:
 
   ResourcesBucket:
     Type: AWS::S3::Bucket
-
-  LogsBucket:
-    Type: AWS::S3::Bucket
+    # add static website configuration
     Properties:
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerPreferred
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  ResourcesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ResourcesBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowAnyPrincipalReadOnly
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${ResourcesBucket}/*"
 
 Outputs:
   ResourcesBucketName:
@@ -42,9 +57,8 @@ Outputs:
     Value: !Ref ResourcesBucket
     Export:
       Name: !Sub '${EnvId}-${Color}-ResourcesBucketName'
-
-  LogsBucketName:
-    Description: Logs bucket name.
-    Value: !Ref LogsBucket
+  WebsiteURL:
+    Description: S3 static website endpoint
+    Value: !GetAtt ResourcesBucket.WebsiteURL
     Export:
-      Name: !Sub '${EnvId}-${Color}-LogsBucketName'
+      Name: !Sub '${EnvId}-${Color}-WebsiteURL'
