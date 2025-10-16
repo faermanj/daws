@@ -3,12 +3,14 @@ set -e
 DIR=$(cd $(dirname $0) && pwd)
 pushd $DIR/../..
 
-ENV_ID=${ENV_ID:-"project"}
+ENV_ID=${ENV_ID:-"distribution"}
 DOMAIN_NAME=${DOMAIN_NAME:-"petoboto.com"}
 ZONE_ID=${ZONE_ID:-"Z01386901AXGFXHXKIDJX"}
 DB_PASSWORD=${DB_PASSWORD:-"Masterkey123"}
 
-# TLS Certificate
+echo "Deploying to environment: $ENV_ID"
+
+echo "Deploying certificate"
 aws cloudformation deploy \
     --stack-name acm-simple \
     --template-file cloudformation/acm-simple/template.cform.yaml \
@@ -17,7 +19,7 @@ aws cloudformation deploy \
         DomainName=$DOMAIN_NAME \
         EnvId=$ENV_ID
 
-# Resources Bucket
+echo "Deploying static resources"
 aws cloudformation deploy \
     --stack-name petoboto-resources \
     --template-file solutions/petoboto-resources/bucket.cform.yaml \
@@ -29,16 +31,19 @@ BUCKET_NAME=$(aws cloudformation describe-stacks \
 echo BUCKET_NAME=$BUCKET_NAME
 aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME/ 
 
-# VPC, Lambda and API
+echo "Deploying network"
 aws cloudformation deploy \
     --stack-name vpc-3ha \
     --template-file cloudformation/vpc-3ha/template.cform.yaml \
     --parameter-overrides EnvId=$ENV_ID
+
+echo "Deploying database"
 aws cloudformation deploy \
     --stack-name rds-mysql-sls \
     --template-file cloudformation/rds-mysql-sls/template.cform.yaml \
     --parameter-overrides DBPassword=$DB_PASSWORD EnvId=$ENV_ID
 
+echo "Deploying API"
 mvn -f ./solutions/petoboto-api-fn clean verify
 sam deploy \
     --stack-name petoboto-api-fn \
@@ -59,7 +64,7 @@ aws cloudformation deploy \
 API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
 echo $API_URL
 
-# Distribution and Alias
+echo "Deploying distribution"
 aws cloudformation deploy \
     --stack-name petoboto-distribution \
     --parameter-overrides \
@@ -75,6 +80,8 @@ DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
     --stack-name petoboto-distribution \
     --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue" \
     --output text)
+
+echo "Deploying dns alias"
 aws cloudformation deploy \
     --stack-name petoboto-alias \
     --parameter-overrides \
@@ -83,6 +90,7 @@ aws cloudformation deploy \
         EnvId=$ENV_ID \
     --template-file solutions/petoboto-distribution/alias.cform.yaml
 
+echo "Deploying invalidation"
 aws cloudfront create-invalidation \
     --distribution-id $DISTRIBUTION_ID \
     --paths "/*"

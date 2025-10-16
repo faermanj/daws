@@ -22,12 +22,8 @@ Description: CloudFront distribution with S3 default origin
 Parameters:
   EnvId:
     Type: String
-    Default: project
+    Default: distribution
     Description: Environment identifier used for cross-stack imports.
-  Color:
-    Type: String
-    Default: blue
-    Description: Color identifier used to suffix cross-stack imports and exports.
 
   DomainName:
     Type: String
@@ -38,7 +34,7 @@ Parameters:
     Default: "true"
 
 Resources:
-  LogsBucket:
+  LogsBucketCD:
     Type: AWS::S3::Bucket
     Properties:
       OwnershipControls:
@@ -50,30 +46,30 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
-  OriginAccessControl:
+  OriginAccessControlCD:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub "${EnvId}-oac"
-        Description: !Sub "OAC for CloudFront distribution ${EnvId}"
+        Name: !Sub "${EnvId}-oac-cd"
+        Description: !Sub "OAC for CloudFront distribution ${EnvId} CD"
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
 
-  Distribution:
+  DistributionCD:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: !Sub "CloudFront distribution for ${EnvId}"
+        Comment: !Sub "CloudFront distribution for ${EnvId} CD"
         Enabled: true
         PriceClass: PriceClass_100
         DefaultRootObject: index.html
         Logging:
-          Bucket: !Sub "${LogsBucket}.s3.amazonaws.com"
-          Prefix: !Sub "cloudfront/${EnvId}/"
+          Bucket: !Sub "${LogsBucketCD}.s3.amazonaws.com"
+          Prefix: !Sub "cloudfront/${EnvId}-cd/"
           IncludeCookies: !Ref LogCookies
         Aliases:
-          - !Sub "${EnvId}.${DomainName}"
+          - !Sub "${EnvId}-cd.${DomainName}"
         ViewerCertificate:
           SslSupportMethod: sni-only
           AcmCertificateArn:
@@ -87,15 +83,15 @@ Resources:
                 - ${BucketName}.s3.${AWS::Region}.amazonaws.com
                 - BucketName:
                     Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
-            OriginAccessControlId: !Ref OriginAccessControl
+                      Fn::Sub: "${EnvId}-ResourcesBucketName"
+            OriginAccessControlId: !Ref OriginAccessControlCD
             S3OriginConfig: {}
 
           - Id: APIOrigin
             # redirect to API Gateway endpoint http api on /api/*
             DomainName:
               Fn::ImportValue:
-                Fn::Sub: "${EnvId}-${Color}-PetobotoApiDnsName"
+                Fn::Sub: "${EnvId}-PetobotoApiDnsName"
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
@@ -140,12 +136,103 @@ Resources:
             Cookies:
               Forward: all
 
+  DistributionCDAlias:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub "CloudFront distribution for ${EnvId} CD Alias (Continuous Deployment Target)"
+        Enabled: true
+        PriceClass: PriceClass_100
+        DefaultRootObject: index.html
+        Logging:
+          Bucket: !Sub "${LogsBucketCD}.s3.amazonaws.com"
+          Prefix: !Sub "cloudfront/${EnvId}-cd-alias/"
+          IncludeCookies: !Ref LogCookies
+        Aliases:
+          - !Sub "${EnvId}-cd-alias.${DomainName}"
+        ViewerCertificate:
+          SslSupportMethod: sni-only
+          AcmCertificateArn:
+            Fn::ImportValue: !Sub "${EnvId}-AcmCertificateArn"
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: S3Origin
+            DomainName:
+              Fn::Sub:
+                - ${BucketName}.s3.${AWS::Region}.amazonaws.com
+                - BucketName:
+                    Fn::ImportValue:
+                      Fn::Sub: "${EnvId}-ResourcesBucketName"
+            OriginAccessControlId: !Ref OriginAccessControlCD
+            S3OriginConfig: {}
+          - Id: APIOrigin
+            DomainName:
+              Fn::ImportValue:
+                Fn::Sub: "${EnvId}-PetobotoApiDnsName"
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: APIOrigin
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - HEAD
+              - DELETE
+              - POST
+              - GET
+              - OPTIONS
+              - PUT
+              - PATCH
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: true
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: https-only
+          AllowedMethods:
+            - HEAD
+            - DELETE
+            - POST
+            - GET
+            - OPTIONS
+            - PUT
+            - PATCH
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: all
+
+  DistributionContinuousDeploymentPolicy:
+    Type: AWS::CloudFront::ContinuousDeploymentPolicy
+    Properties:
+      ContinuousDeploymentPolicyConfig:
+        Enabled: true
+        StagingDistributionDnsNames:
+          - !GetAtt DistributionCDAlias.DomainName
+        TrafficConfig:
+          Type: SingleHeader
+          SingleHeaderConfig:
+            Header: "X-CF-Continuous-Deployment"
+            Value: "true"
+        Enabled: true
+
   ResourcesBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket:
         Fn::ImportValue:
-          Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
+          Fn::Sub: "${EnvId}-ResourcesBucketName"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -160,15 +247,15 @@ Resources:
                 - arn:aws:s3:::${BucketName}/*
                 - BucketName:
                     Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-${Color}-ResourcesBucketName"
+                      Fn::Sub: "${EnvId}-ResourcesBucketName"
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionCD}"
 
-  LogsBucketPolicy:
+  LogsBucketPolicyCD:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref LogsBucket
+      Bucket: !Ref LogsBucketCD
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -179,7 +266,7 @@ Resources:
             Action:
               - s3:PutObject
             Resource:
-              Fn::Sub: "arn:aws:s3:::${LogsBucket}/cloudfront/${EnvId}/*"
+              Fn::Sub: "arn:aws:s3:::${LogsBucketCD}/cloudfront/${EnvId}-cd/*"
             Condition:
               StringEquals:
                 s3:x-amz-acl: bucket-owner-full-control
@@ -188,14 +275,32 @@ Resources:
                 aws:SourceArn: !Sub "arn:aws:logs:us-east-1:${AWS::AccountId}:delivery-source/*"
 
 Outputs:
-  DistributionId:
-    Description: CloudFront distribution identifier.
-    Value: !Ref Distribution
+  DistributionIdCD:
+    Description: CloudFront distribution identifier for CD.
+    Value: !Ref DistributionCD
     Export:
-      Name: !Sub "${EnvId}-${Color}-DistributionId"
+      Name: !Sub "${EnvId}-DistributionId-CD"
       
-  DistributionDomainName:
-    Description: CloudFront distribution domain name.
-    Value: !GetAtt Distribution.DomainName
+  DistributionDomainNameCD:
+    Description: CloudFront distribution domain name for CD.
+    Value: !GetAtt DistributionCD.DomainName
     Export:
-      Name: !Sub "${EnvId}-${Color}-DistributionDomainName"
+      Name: !Sub "${EnvId}-DistributionDomainName-CD"
+
+  DistributionIdCDAlias:
+    Description: CloudFront distribution identifier for CD Alias.
+    Value: !Ref DistributionCDAlias
+    Export:
+      Name: !Sub "${EnvId}-DistributionId-CD-Alias"
+
+  DistributionDomainNameCDAlias:
+    Description: CloudFront distribution domain name for CD Alias.
+    Value: !GetAtt DistributionCDAlias.DomainName
+    Export:
+      Name: !Sub "${EnvId}-DistributionDomainName-CD-Alias"
+
+  ContinuousDeploymentPolicyId:
+    Description: CloudFront Continuous Deployment Policy Id
+    Value: !Ref DistributionContinuousDeploymentPolicy
+    Export:
+      Name: !Sub "${EnvId}-ContinuousDeploymentPolicyId"
