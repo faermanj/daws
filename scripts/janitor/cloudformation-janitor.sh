@@ -15,7 +15,6 @@ while true; do
     for stack in $stacks; do
         aws cloudformation delete-stack --stack-name "$stack"
         echo -e "cloudformation	stack	${stack}"
-        aws cloudformation wait stack-delete-complete --stack-name "$stack"
+        aws cloudformation wait stack-delete-complete --stack-name "$stack" || true
     done
-
 done

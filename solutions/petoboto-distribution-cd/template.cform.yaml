@@ -60,6 +60,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        Staging: false
         Comment: !Sub "CloudFront distribution for ${EnvId} CD"
         Enabled: true
         PriceClass: PriceClass_100
@@ -136,10 +137,11 @@ Resources:
             Cookies:
               Forward: all
 
-  DistributionCDAlias:
+  StagingDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        Staging: true
         Comment: !Sub "CloudFront distribution for ${EnvId} CD Alias (Continuous Deployment Target)"
         Enabled: true
         PriceClass: PriceClass_100
@@ -219,7 +221,7 @@ Resources:
       ContinuousDeploymentPolicyConfig:
         Enabled: true
         StagingDistributionDnsNames:
-          - !GetAtt DistributionCDAlias.DomainName
+          - !GetAtt StagingDistribution.DomainName
         TrafficConfig:
           Type: SingleHeader
           SingleHeaderConfig:
@@ -289,13 +291,13 @@ Outputs:
 
   DistributionIdCDAlias:
     Description: CloudFront distribution identifier for CD Alias.
-    Value: !Ref DistributionCDAlias
+    Value: !Ref StagingDistribution
     Export:
       Name: !Sub "${EnvId}-DistributionId-CD-Alias"
 
   DistributionDomainNameCDAlias:
     Description: CloudFront distribution domain name for CD Alias.
-    Value: !GetAtt DistributionCDAlias.DomainName
+    Value: !GetAtt StagingDistribution.DomainName
     Export:
       Name: !Sub "${EnvId}-DistributionDomainName-CD-Alias"
 
