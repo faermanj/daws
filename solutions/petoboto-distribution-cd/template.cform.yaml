@@ -148,10 +148,8 @@ Resources:
         DefaultRootObject: index.html
         Logging:
           Bucket: !Sub "${LogsBucketCD}.s3.amazonaws.com"
-          Prefix: !Sub "cloudfront/${EnvId}-cd-alias/"
+          Prefix: !Sub "cloudfront/${EnvId}-cd-staging/"
           IncludeCookies: !Ref LogCookies
-        Aliases:
-          - !Sub "${EnvId}-cd-alias.${DomainName}"
         ViewerCertificate:
           SslSupportMethod: sni-only
           AcmCertificateArn:
@@ -223,10 +221,9 @@ Resources:
         StagingDistributionDnsNames:
           - !GetAtt StagingDistribution.DomainName
         TrafficConfig:
-          Type: SingleHeader
-          SingleHeaderConfig:
-            Header: "X-CF-Continuous-Deployment"
-            Value: "true"
+          Type: SingleWeight
+          SingleWeightConfig:
+            Weight: 0.0
         Enabled: true
 
   ResourcesBucketPolicy:

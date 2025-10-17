@@ -11,7 +11,7 @@ GITHUB_REPO=${GITHUB_REPO:-"faermanj/daws"}
 
 # TLS Certificate
 aws cloudformation deploy \
-    --stack-name acm-simple \
+    --stack-name acm-simple-cd \
     --template-file cloudformation/acm-simple/template.cform.yaml \
     --parameter-overrides \
         HostedZoneId=$ZONE_ID \
@@ -20,11 +20,11 @@ aws cloudformation deploy \
 
 # Resources Bucket
 aws cloudformation deploy \
-    --stack-name petoboto-resources \
+    --stack-name petoboto-resources-cd \
     --template-file solutions/petoboto-resources/bucket.cform.yaml \
     --parameter-overrides EnvId=$ENV_ID
 BUCKET_NAME=$(aws cloudformation describe-stacks \
-    --stack-name petoboto-resources \
+    --stack-name petoboto-resources-cd \
     --query "Stacks[0].Outputs[?OutputKey=='ResourcesBucketName'].OutputValue" \
     --output text)
 echo BUCKET_NAME=$BUCKET_NAME
@@ -32,17 +32,17 @@ aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME/
 
 # VPC, Lambda and API
 aws cloudformation deploy \
-    --stack-name vpc-3ha \
+    --stack-name vpc-3ha-cd \
     --template-file cloudformation/vpc-3ha/template.cform.yaml \
     --parameter-overrides EnvId=$ENV_ID
 aws cloudformation deploy \
-    --stack-name rds-mysql-sls \
+    --stack-name rds-mysql-sls-cd \
     --template-file cloudformation/rds-mysql-sls/template.cform.yaml \
     --parameter-overrides DBPassword=$DB_PASSWORD EnvId=$ENV_ID
 
 mvn -f ./solutions/petoboto-api-fn clean verify
 sam deploy \
-    --stack-name petoboto-api-fn \
+    --stack-name petoboto-api-fn-cd \
     --template-file solutions/petoboto-api-fn/sam.cform.yaml \
     --capabilities CAPABILITY_IAM \
     --resolve-s3 \
@@ -51,13 +51,13 @@ sam deploy \
     --no-fail-on-empty-changeset \
     --parameter-overrides EnvId=$ENV_ID
 aws cloudformation deploy \
-    --stack-name petoboto-api-domain \
+    --stack-name petoboto-api-domain-cd \
     --template-file solutions/petoboto-api-fn/domain.cform.yaml \
     --parameter-overrides \
         HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
         EnvId=$ENV_ID
-API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
+API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn-cd --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
 echo $API_URL
 
 # Distribution with CD
@@ -68,15 +68,6 @@ aws cloudformation deploy \
         EnvId=$ENV_ID \
     --template-file solutions/petoboto-distribution-cd/template.cform.yaml
 
-# CD Pipeline
-aws cloudformation deploy \
-    --stack-name petoboto-distribution-cd-pipeline \
-    --template-file solutions/petoboto-distribution-cd/cd.cform.yaml \
-    --parameter-overrides \
-        EnvId=$ENV_ID \
-        GitHubRepo=$GITHUB_REPO \
-    --capabilities CAPABILITY_IAM
-
 DISTRIBUTION_DOMAIN=$(aws cloudformation describe-stacks \
     --stack-name petoboto-distribution-cd \
     --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainNameCD'].OutputValue" \
@@ -86,13 +77,9 @@ DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
     --stack-name petoboto-distribution-cd \
     --query "Stacks[0].Outputs[?OutputKey=='DistributionIdCD'].OutputValue" \
     --output text)
-GITHUB_CONNECTION=$(aws cloudformation describe-stacks \
-    --stack-name petoboto-distribution-cd-pipeline \
-    --query "Stacks[0].Outputs[?OutputKey=='GitHubConnectionArn'].OutputValue" \
-    --output text)
 
 aws cloudformation deploy \
-    --stack-name petoboto-alias \
+    --stack-name petoboto-alias-cd \
     --parameter-overrides \
         HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
