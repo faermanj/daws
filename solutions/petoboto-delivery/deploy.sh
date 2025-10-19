@@ -18,17 +18,35 @@ aws cloudformation deploy \
         DomainName=$DOMAIN_NAME \
         EnvId=$ENV_ID
 
-# Resources Bucket
+# Main/Blue Bucket
+ENV_COLOR="blue"
 aws cloudformation deploy \
-    --stack-name petoboto-resources-cd \
-    --template-file solutions/petoboto-resources/bucket.cform.yaml \
-    --parameter-overrides EnvId=$ENV_ID
-BUCKET_NAME=$(aws cloudformation describe-stacks \
-    --stack-name petoboto-resources-cd \
+    --stack-name petoboto-resources-$ENV_COLOR \
+    --template-file solutions/petoboto-resources/bucket-color.cform.yaml \
+    --parameter-overrides EnvId=$ENV_ID EnvColor=$ENV_COLOR
+BUCKET_NAME_MAIN=$(aws cloudformation describe-stacks \
+    --stack-name petoboto-resources-$ENV_COLOR \
     --query "Stacks[0].Outputs[?OutputKey=='ResourcesBucketName'].OutputValue" \
     --output text)
-echo BUCKET_NAME=$BUCKET_NAME
-aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME/ 
+echo BUCKET_NAME_MAIN=$BUCKET_NAME_MAIN
+aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME_MAIN/
+aws s3 cp ./solutions/petoboto-resources/src/css/styles.$ENV_COLOR.css s3://$BUCKET_NAME_MAIN/styles.css
+echo "Deployed main resources to $BUCKET_NAME_MAIN"
+
+# Staging/Green Bucket
+ENV_COLOR="green"
+aws cloudformation deploy \
+    --stack-name petoboto-resources-$ENV_COLOR \
+    --template-file solutions/petoboto-resources/bucket-color.cform.yaml \
+    --parameter-overrides EnvId=$ENV_ID EnvColor=$ENV_COLOR
+BUCKET_NAME_STAGING=$(aws cloudformation describe-stacks \
+    --stack-name petoboto-resources-$ENV_COLOR \
+    --query "Stacks[0].Outputs[?OutputKey=='ResourcesBucketName'].OutputValue" \
+    --output text)
+echo BUCKET_NAME_STAGING=$BUCKET_NAME_STAGING
+aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME_STAGING/
+aws s3 cp ./solutions/petoboto-resources/src/css/styles.$ENV_COLOR.css s3://$BUCKET_NAME_STAGING/styles.css
+echo "Deployed staging resources to $BUCKET_NAME_STAGING"
 
 # VPC, Lambda and API
 aws cloudformation deploy \
@@ -60,21 +78,33 @@ aws cloudformation deploy \
 API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn-cd --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
 echo $API_URL
 
-# Distribution with CD
+
+
+# Distribution with CD (main/blue)
 aws cloudformation deploy \
-    --stack-name petoboto-distribution-cd \
+    --stack-name petoboto-delivery \
     --parameter-overrides \
         DomainName=$DOMAIN_NAME \
         EnvId=$ENV_ID \
-    --template-file solutions/petoboto-distribution-cd/template.cform.yaml
+        EnvColor=$ENV_COLOR \
+    --template-file solutions/petoboto-delivery/template.cform.yaml
+
+# Staging Distribution (CD Alias, green)
+aws cloudformation deploy \
+    --stack-name petoboto-delivery-staging \
+    --parameter-overrides \
+        DomainName=$DOMAIN_NAME \
+        EnvId=$ENV_ID \
+        ResourcesBucketName=$BUCKET_NAME_STAGING \
+    --template-file solutions/petoboto-delivery/staging.cform.yaml
 
 DISTRIBUTION_DOMAIN=$(aws cloudformation describe-stacks \
-    --stack-name petoboto-distribution-cd \
+    --stack-name petoboto-delivery \
     --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainNameCD'].OutputValue" \
     --output text)
 echo "http://$DISTRIBUTION_DOMAIN/"
 DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
-    --stack-name petoboto-distribution-cd \
+    --stack-name petoboto-delivery \
     --query "Stacks[0].Outputs[?OutputKey=='DistributionIdCD'].OutputValue" \
     --output text)
 
@@ -84,7 +114,7 @@ aws cloudformation deploy \
         HostedZoneId=$ZONE_ID \
         DomainName=$DOMAIN_NAME \
         EnvId=$ENV_ID \
-    --template-file solutions/petoboto-distribution-cd/alias.cform.yaml
+    --template-file solutions/petoboto-delivery/alias.cform.yaml
 
 aws cloudfront create-invalidation \
     --distribution-id $DISTRIBUTION_ID \

@@ -1,0 +1,35 @@
+# aws cloudformation deploy --stack-name resources-bucket-resources --template-file solutions/petoboto-resources/bucket.cform.yaml 
+# BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name resources-bucket-resources --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" --output text)
+# echo $BUCKET_NAME
+# aws s3 cp html/simple-html/tuna-bigfile.jpg s3://$BUCKET_NAME/ --acl public-read
+# OBJECT_URL="http://$BUCKET_NAME.s3.amazonaws.com/tuna-bigfile.jpg"
+# echo $OBJECT_URL
+# time curl $OBJECT_URL -o /dev/null
+# ab -k -t 333 -c 99 -r $OBJECT_URL
+AWSTemplateFormatVersion: 2010-09-09
+Description: Simple S3 bucket template.
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+
+  EnvColor:
+    Type: String
+    Default: default
+    Description: Color identifier to include in the bucket name and export.
+
+Resources:
+  ResourcesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${EnvId}-${EnvColor}-resources-bucket'
+
+Outputs:
+  ResourcesBucketName:
+    Description: Resource bucket name.
+    Value: !Ref ResourcesBucket
+    Export:
+      Name: !Sub '${EnvId}-${EnvColor}-ResourcesBucketName'
+

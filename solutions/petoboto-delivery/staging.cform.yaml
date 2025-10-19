@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFront staging distribution and continuous deployment policy
+
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: distribution
+    Description: Environment identifier used for cross-stack imports.
+
+  DomainName:
+    Type: String
+    Description: "The domain name for the Distribution"
+
+  LogCookies:
+    Type: String
+    Default: "true"
+
+  ResourcesBucketName:
+    Type: String
+    Description: "S3 bucket name for the static site origin"
+
+Resources:
+  StagingDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Staging: true
+        Comment: !Sub "CloudFront distribution for ${EnvId} CD Alias (Continuous Deployment Target)"
+        Enabled: true
+        PriceClass: PriceClass_100
+        DefaultRootObject: index.html
+        Logging:
+          Bucket: 
+            Fn::Sub:
+              - "${LogsBucketName}.s3.amazonaws.com"
+              - LogsBucketName:
+                  Fn::ImportValue: !Sub "${EnvId}-LogsBucketName"
+
+          Prefix: !Sub "cloudfront/${EnvId}-cd-staging/"
+          IncludeCookies: !Ref LogCookies
+        ViewerCertificate:
+          SslSupportMethod: sni-only
+          AcmCertificateArn:
+            Fn::ImportValue: !Sub "${EnvId}-AcmCertificateArn"
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: S3Origin
+            DomainName: !Sub "${ResourcesBucketName}.s3.${AWS::Region}.amazonaws.com"
+            OriginAccessControlId:
+              Fn::ImportValue: !Sub "${EnvId}-OriginAccessControlId"
+            S3OriginConfig: {}
+          - Id: APIOrigin
+            DomainName:
+              Fn::ImportValue:
+                Fn::Sub: "${EnvId}-PetobotoApiDnsName"
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: APIOrigin
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - HEAD
+              - DELETE
+              - POST
+              - GET
+              - OPTIONS
+              - PUT
+              - PATCH
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: true
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: https-only
+          AllowedMethods:
+            - HEAD
+            - DELETE
+            - POST
+            - GET
+            - OPTIONS
+            - PUT
+            - PATCH
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: all
+
+  DistributionContinuousDeploymentPolicy:
+    Type: AWS::CloudFront::ContinuousDeploymentPolicy
+    Properties:
+      ContinuousDeploymentPolicyConfig:
+        Enabled: true
+        StagingDistributionDnsNames:
+          - !GetAtt StagingDistribution.DomainName
+        TrafficConfig:
+          Type: SingleWeight
+          SingleWeightConfig:
+            Weight: 0.0
+        Enabled: true
+
+Outputs:
+  DistributionIdCDAlias:
+    Description: CloudFront distribution identifier for CD Alias.
+    Value: !Ref StagingDistribution
+    Export:
+      Name: !Sub "${EnvId}-DistributionId-CD-Alias"
+
+  DistributionDomainNameCDAlias:
+    Description: CloudFront distribution domain name for CD Alias.
+    Value: !GetAtt StagingDistribution.DomainName
+    Export:
+      Name: !Sub "${EnvId}-DistributionDomainName-CD-Alias"
+
+  ContinuousDeploymentPolicyId:
+    Description: CloudFront Continuous Deployment Policy Id
+    Value: !Ref DistributionContinuousDeploymentPolicy
+    Export:
+      Name: !Sub "${EnvId}-ContinuousDeploymentPolicyId"
