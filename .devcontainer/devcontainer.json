@@ -3,7 +3,9 @@
   "image": "mcr.microsoft.com/devcontainers/base",
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers-extra/features/direnv:1": {},
     "ghcr.io/devcontainers/features/java:1": {
+      "installMaven": true,
       "jdkDistro": "graalce"
     },
     "ghcr.io/devcontainers/features/python:1": {},
