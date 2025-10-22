@@ -25,5 +25,29 @@ then
 fi
 mysql --version
 
+# If there is a /nix dir, chown it
+if [ -d "/nix" ]; then
+    echo "Changing ownership of /nix to user $(whoami)..."
+    sudo chown -R $(whoami) /nix
+    devbox install
+fi
+
+# If there is no maven, install with sdkman
+if ! command -v mvn &> /dev/null
+then
+    echo "Maven not found, proceeding with installation via SDKMAN..."
+    sdk install maven
+    echo "Maven installed successfully!"
+fi
+mvn -version
+
+# If there is no quarkus, install with sdkman
+if ! command -v quarkus &> /dev/null
+then
+    echo "Quarkus not found, proceeding with installation via SDKMAN..."
+    sdk install quarkus
+    echo "Quarkus installed successfully!"
+fi
+quarkus --version
 
 echo "Done [postCreateCommand.sh]."

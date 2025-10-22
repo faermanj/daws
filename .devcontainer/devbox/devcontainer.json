@@ -5,10 +5,10 @@
     "ghcr.io/dlouwers/devcontainer-features/devbox:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
-  "postCreateCommand": "devbox install",
+  "postCreateCommand": "./scripts/postCreateCommand.sh",
   "customizations": {
     "vscode": {
-      "extensions": ["aws-scripting-guy.cform", "ms-python.python", "k6.k6" ]
+      "extensions": ["aws-scripting-guy.cform", "ms-python.python", "k6.k6"]
     }
   }
 }
