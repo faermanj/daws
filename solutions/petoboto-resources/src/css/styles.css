@@ -1,18 +1,8 @@
-/* Pastel Green theme for Petoboto
-   Palette (soft, fresh, readable):
-   - Base (background): #F1F8F5 (light mint)
-   - Surface (cards): #FFFFFF with subtle border
-   - Text primary: #223A30 (deep green/charcoal)
-   - Subtle text: #5C7D6F (desaturated green)
-   - Accent (links/focus): #62B69B (pastel green)
-*/
-
-/* Layout & base */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
-  background: #EAF6F1; /* a touch greener mint */
-  color: #223A30;       /* deep green */
+  background: #f9f9f9; /* light gray */
+  color: #333;         /* dark gray for readability */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,7 +10,6 @@ body {
   gap: 1rem;
 }
 
-/* Headings */
 h1, h2 {
   margin: 0;
   text-align: center;
@@ -30,10 +19,9 @@ h2 {
   font-weight: 600;
   letter-spacing: 0.3em;
   font-size: 1.1rem;
-  color: #4E6F62; /* slightly greener subtle text */
+  color: #666;
 }
 
-/* Grid */
 #content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -41,14 +29,12 @@ h2 {
   width: min(1200px, 100%);
 }
 
-/* Cards */
 .pet-card {
-  background: #F8FBF9; /* clean surface with a soft green tint */
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(79, 176, 143, 0.10);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 1.5rem;
   text-align: center;
-  border: 1px solid rgba(98, 182, 155, 0.22); /* faint border leaning greener */
 }
 
 .pet-card img {
@@ -63,13 +49,6 @@ h2 {
   text-decoration: none;
 }
 
-/* Accent for links */
-.pet-card a:hover,
-a:hover {
-  color: #5EC0A2; /* slightly greener pastel accent */
-  text-decoration: underline;
-}
-
 .pet-card h1 {
   font-size: 1.2rem;
   margin: 0.5rem 0;
@@ -79,11 +58,10 @@ a:hover {
   font-size: 0.8rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #4E6F62;
+  color: #888;
   padding-bottom: 1em;
 }
 
-/* Media */
 img {
   max-width: 100%;
   height: auto;
@@ -94,10 +72,4 @@ img {
 h1 {
   font-size: 2.25rem;
   line-height: 1.2;
-}
-
-/* Accessibility focus ring */
-:focus-visible {
-  outline: 2px solid #5EC0A2;
-  outline-offset: 2px;
 }

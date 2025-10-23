@@ -7,6 +7,8 @@ ENV_ID=${ENV_ID:-"distribution"}
 DOMAIN_NAME=${DOMAIN_NAME:-"petoboto.com"}
 ZONE_ID=${ZONE_ID:-"Z01386901AXGFXHXKIDJX"}
 DB_PASSWORD=${DB_PASSWORD:-"Masterkey123"}
+HOST=${ENV_ID}.${DOMAIN_NAME}
+export AWS_PAGER=""
 
 echo "Deploying to environment: $ENV_ID"
 
@@ -96,9 +98,8 @@ aws cloudfront create-invalidation \
     --paths "/*"
 
 # Suggested Tests
-HOST=${ENV_ID}.${DOMAIN_NAME}
-echo "http://$HOST/tuna-1mb.jpg"
-echo time curl -s "http://$HOST/tuna-1mb.jpg" -o /dev/null
+echo "https://$HOST/tuna-1mb.jpg"
+echo time curl -s "https://$HOST/tuna-1mb.jpg" -o /dev/null
 echo ab -k -n 655350 -c 128 -r "http://$HOST/tuna-1mb.jpg"
 
 popd

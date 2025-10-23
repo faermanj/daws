@@ -1,0 +1,4 @@
+for each maven property in this file:
+    - group by dependency type, framework or otherwise sort alphabetically
+    - if it is a version, check if it is latest and add a link to maven central
+    

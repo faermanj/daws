@@ -27,7 +27,7 @@ Parameters:
 
   EnvColor:
     Type: String
-    Default: blue
+    Default: flicts
     Description: Color identifier used for cross-stack imports.
 
   DomainName:
@@ -37,7 +37,7 @@ Parameters:
   LogCookies:
     Type: String
     Default: "true"
-
+    
 Resources:
   LogsBucketCD:
     Type: AWS::S3::Bucket
@@ -55,7 +55,7 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub "${EnvId}-oac-cd"
+        Name: !Sub "${EnvId}-oac"
         Description: !Sub "OAC for CloudFront distribution ${EnvId} CD"
         OriginAccessControlOriginType: s3
         SigningBehavior: always
@@ -72,10 +72,10 @@ Resources:
         DefaultRootObject: index.html
         Logging:
           Bucket: !Sub "${LogsBucketCD}.s3.amazonaws.com"
-          Prefix: !Sub "cloudfront/${EnvId}-cd/"
+          Prefix: !Sub "cloudfront/${EnvId}/"
           IncludeCookies: !Ref LogCookies
         Aliases:
-          - !Sub "${EnvId}-cd.${DomainName}"
+          - !Sub "${EnvId}.${DomainName}"
         ViewerCertificate:
           SslSupportMethod: sni-only
           AcmCertificateArn:
@@ -182,7 +182,7 @@ Resources:
             Action:
               - s3:PutObject
             Resource:
-              Fn::Sub: "arn:aws:s3:::${LogsBucketCD}/cloudfront/${EnvId}-cd/*"
+              Fn::Sub: "arn:aws:s3:::${LogsBucketCD}/cloudfront/${EnvId}/*"
             Condition:
               StringEquals:
                 s3:x-amz-acl: bucket-owner-full-control
@@ -213,5 +213,5 @@ Outputs:
     Description: Origin Access Control ID for CloudFront distribution CD.
     Value: !Ref OriginAccessControlCD
     Export:
-      Name: !Sub "${EnvId}-OriginAccessControlId"
+      Name: !Sub "${EnvId}-OriginAccessControlCDId"
 

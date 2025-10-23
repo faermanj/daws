@@ -7,6 +7,11 @@ Parameters:
     Type: String
     Default: distribution
     Description: Environment identifier used for cross-stack imports.
+  
+  EnvColor:
+    Type: String
+    Default: flicts
+    Description: Color identifier used for cross-stack imports.
 
   DomainName:
     Type: String
@@ -16,9 +21,10 @@ Parameters:
     Type: String
     Default: "true"
 
-  ResourcesBucketName:
-    Type: String
-    Description: "S3 bucket name for the static site origin"
+  StagingWeight:
+    Type: Number
+    Default: 0.00
+    Description: "Traffic weight for the staging distribution (0.00 - 0.15)"
 
 Resources:
   StagingDistribution:
@@ -46,10 +52,16 @@ Resources:
           MinimumProtocolVersion: TLSv1.2_2021
         Origins:
           - Id: S3Origin
-            DomainName: !Sub "${ResourcesBucketName}.s3.${AWS::Region}.amazonaws.com"
-            OriginAccessControlId:
-              Fn::ImportValue: !Sub "${EnvId}-OriginAccessControlId"
+            DomainName: 
+              Fn::Sub:
+                - "${BucketName}.s3.${AWS::Region}.amazonaws.com"
+                - BucketName:
+                    Fn::ImportValue:
+                      Fn::Sub: "${EnvId}-${EnvColor}-ResourcesBucketName"
+            OriginAccessControlId: 
+              Fn::ImportValue: !Sub "${EnvId}-OriginAccessControlCDId"
             S3OriginConfig: {}
+
           - Id: APIOrigin
             DomainName:
               Fn::ImportValue:
@@ -108,7 +120,7 @@ Resources:
         TrafficConfig:
           Type: SingleWeight
           SingleWeightConfig:
-            Weight: 0.0
+            Weight: !Ref StagingWeight
         Enabled: true
 
 Outputs:

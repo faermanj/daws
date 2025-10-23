@@ -20,7 +20,7 @@ import jakarta.ws.rs.core.MediaType;
 public class PetsResource {
 
     @Transactional
-    public void init(@Observes StartupEvent ev) {
+    public synchronized void init(@Observes StartupEvent ev) {
         List<Pet> all = Pet.listAll();
         if (!all.isEmpty()) 
             return;
@@ -41,5 +41,13 @@ public class PetsResource {
         return result;
     }
 
+    /** Delete all pets.
+     * curl -X DELETE http://127.0.0.1:8080/pets
+     */
+    @Transactional
+    public void deleteAll() {
+        Pet.deleteAll();
+        
+    }
 
 }
