@@ -1,16 +1,15 @@
 #!/bin/bash 
-set -e
-DIR=$(cd $(dirname $0) && pwd)
+set -euo pipefail
+DIR="$(cd "$(dirname "$0")" && pwd)"
 pushd $DIR/../..
 
-export AWS_PAGER=""
-
-ENV_ID=${ENV_ID:-"delivery1"}
+ENV_ID=${ENV_ID:-"delivery"}
 DOMAIN_NAME=${DOMAIN_NAME:-"petoboto.com"}
 ZONE_ID=${ZONE_ID:-"Z01386901AXGFXHXKIDJX"}
 DB_PASSWORD=${DB_PASSWORD:-"Masterkey123"}
 HOST=${ENV_ID}.${DOMAIN_NAME}
 
+export AWS_PAGER=""
 
 source $DIR/deploy-storage.sh
 source $DIR/deploy-foundation.sh

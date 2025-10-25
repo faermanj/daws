@@ -13,7 +13,7 @@ BUCKET_NAME_MAIN=$(aws cloudformation describe-stacks \
 echo BUCKET_NAME_MAIN=$BUCKET_NAME_MAIN
 aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME_MAIN/
 echo "Applying color [$ENV_COLOR]"
-aws s3 cp ./solutions/petoboto-resources/src/css/styles.$ENV_COLOR.css s3://$BUCKET_NAME_MAIN/styles.css
+aws s3 cp ./solutions/petoboto-resources/src/css/styles.$ENV_COLOR.css s3://$BUCKET_NAME_MAIN/css/styles.css
 echo "Deployed main resources [$ENV_COLOR] to $BUCKET_NAME_MAIN"
 
 # Staging/Green Bucket
@@ -29,5 +29,5 @@ BUCKET_NAME_STAGING=$(aws cloudformation describe-stacks \
 echo BUCKET_NAME_STAGING=$BUCKET_NAME_STAGING
 aws s3 sync ./solutions/petoboto-resources/src/ s3://$BUCKET_NAME_STAGING/
 echo "Applying color [$ENV_COLOR]"
-aws s3 cp ./solutions/petoboto-resources/src/css/styles.$ENV_COLOR.css s3://$BUCKET_NAME_STAGING/styles.css
+aws s3 cp ./solutions/petoboto-resources/src/css/styles.$ENV_COLOR.css s3://$BUCKET_NAME_STAGING/css/styles.css
 echo "Deployed staging resources [$ENV_COLOR] to $BUCKET_NAME_STAGING"

@@ -1,7 +1,7 @@
 /* Pastel Yellow theme for Petoboto
    Palette (warm, soft, readable):
    - Base (background): #FFF7E8 (light warm yellow)
-   - Surface (cards): #FFFFFF with subtle golden border
+   - Surface (cards): white with subtle golden border
    - Text primary: #3D3723 (warm dark)
    - Subtle text: #8A7A4F (muted golden-brown)
    - Accent (links/focus): #F2C14E (pastel golden yellow)
@@ -43,7 +43,7 @@ h2 {
 
 /* Cards */
 .pet-card {
-  background: #FFFFFF; /* clean surface */
+  background: white; /* clean surface */
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(242, 193, 78, 0.12); /* soft golden shadow */
   padding: 1.5rem;

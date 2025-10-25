@@ -1,7 +1,7 @@
 /* Pastel Blue theme for Petoboto
    Palette (calm, fresh, readable):
    - Base (background): #F3F7FB (light airy blue)
-   - Surface (cards): #FFFFFF with subtle blue border
+   - Surface (cards): white with subtle blue border
    - Text primary: #24324A (navy-leaning charcoal)
    - Subtle text: #6B7C93 (blue-gray)
    - Accent (links/focus): #5AA1F2 (pastel blue)
@@ -43,7 +43,7 @@ h2 {
 
 /* Cards */
 .pet-card {
-  background: #FFFFFF; /* clean surface */
+  background: white; /* clean surface */
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(90, 161, 242, 0.14); /* slightly stronger blue shadow */
   padding: 1.5rem;

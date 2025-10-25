@@ -1,7 +1,7 @@
 /* Pastel Red theme for Petoboto
    Palette (warm, calm, readable):
    - Base (background): #FDF2F3 (soft rose)
-   - Surface (cards): #FFFFFF with subtle rose border
+   - Surface (cards): white with subtle rose border
    - Text primary: #4A2426 (deep warm brownish red)
    - Subtle text: #8C5B5E (muted rosewood)
    - Accent (links/focus): #F2798E (pastel coral-rose)
@@ -43,7 +43,7 @@ h2 {
 
 /* Cards */
 .pet-card {
-  background: #FFFFFF; /* clean surface */
+  background: white; /* clean surface */
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(242, 121, 142, 0.10); /* soft rose shadow */
   padding: 1.5rem;

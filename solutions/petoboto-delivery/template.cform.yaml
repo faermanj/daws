@@ -37,6 +37,14 @@ Parameters:
   LogCookies:
     Type: String
     Default: "true"
+
+  ContinuousDeploymentPolicyId:
+    Type: String
+    Default: ""
+    Description: "The Continuous Deployment Policy Id for the Distribution"
+
+Conditions:
+  HasPolicyId: !Not [!Equals [!Ref ContinuousDeploymentPolicyId, ""]]
     
 Resources:
   LogsBucketCD:
@@ -61,14 +69,19 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+
   DistributionCD:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Staging: false
+        ContinuousDeploymentPolicyId: 
+          Fn::If:
+            - HasPolicyId
+            - !Ref ContinuousDeploymentPolicyId
+            - !Ref "AWS::NoValue"
         Comment: !Sub "CloudFront distribution for ${EnvId} CD"
         Enabled: true
-        PriceClass: PriceClass_100
         DefaultRootObject: index.html
         Logging:
           Bucket: !Sub "${LogsBucketCD}.s3.amazonaws.com"
