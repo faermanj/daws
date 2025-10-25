@@ -177,10 +177,7 @@ Resources:
                 - BucketName:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-${EnvColor}-ResourcesBucketName"
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
-
+ 
   LogsBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:

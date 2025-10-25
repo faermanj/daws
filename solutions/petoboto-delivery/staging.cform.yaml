@@ -156,9 +156,6 @@ Resources:
                 - BucketName:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-${EnvColor}-ResourcesBucketName"
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${StagingDistribution}"
 
 Outputs:
   StagingDistributionId:
