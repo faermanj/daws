@@ -1,10 +1,5 @@
-/* Pastel Blue theme for Petoboto
-   Palette (calm, fresh, readable):
-   - Base (background): #F3F7FB (light airy blue)
-   - Surface (cards): white with subtle blue border
-   - Text primary: #24324A (navy-leaning charcoal)
-   - Subtle text: #6B7C93 (blue-gray)
-   - Accent (links/focus): #5AA1F2 (pastel blue)
+/* 
+ENV_COLOR=blue
 */
 
 /* Layout & base */

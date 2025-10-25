@@ -135,6 +135,31 @@ Resources:
             Weight: !Ref StagingWeight
         Enabled: true
 
+  ResourcesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Fn::ImportValue:
+          Fn::Sub: "${EnvId}-${EnvColor}-ResourcesBucketName"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com   
+            Action:
+              - s3:GetObject
+            Resource:
+              Fn::Sub:
+                - arn:aws:s3:::${BucketName}/*
+                - BucketName:
+                    Fn::ImportValue:
+                      Fn::Sub: "${EnvId}-${EnvColor}-ResourcesBucketName"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${StagingDistribution}"
+
 Outputs:
   DistributionIdCDAlias:
     Description: CloudFront distribution identifier for CD Alias.

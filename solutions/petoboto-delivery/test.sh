@@ -5,11 +5,19 @@ export AWS_PAGER=""
 ENV_ID=${ENV_ID:-"delivery"}
 DOMAIN_NAME=${DOMAIN_NAME:-"petoboto.com"}
 HOST=${ENV_ID}.${DOMAIN_NAME}
-
+COUNT=0
+GREEN=0
+GREEN_RATIO=0
 ## while true check head of styles css for color applied
 while true; do
   URL="https://$HOST/css/styles.css"
-  HEAD=$(curl -s $URL | grep "background: #")
-  echo "$(date +%H:%M:%S): $HEAD"
-  sleep 1.2345
+  HEAD=$(curl -s $URL | grep "ENV_COLOR")
+  COUNT=$((COUNT + 1))
+  IS_GREEN=$(echo $HEAD | grep "ENV_COLOR=green" || true)
+  GREEN_RATIO=$(awk "BEGIN {printf \"%.2f\", $GREEN/$COUNT}")
+  if [ -n "$IS_GREEN" ]; then
+    GREEN=$((GREEN + 1))
+  fi
+  echo "$(date +%H:%M:%S) [$COUNT/$GREEN/$GREEN_RATIO]: $HEAD"
+  sleep 0.333
 done
