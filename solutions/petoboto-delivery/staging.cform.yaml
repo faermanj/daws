@@ -161,17 +161,17 @@ Resources:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${StagingDistribution}"
 
 Outputs:
-  DistributionIdAlias:
-    Description: CloudFront distribution identifier for Alias.
+  StagingDistributionId:
+    Description: CloudFront distribution identifier for staging.
     Value: !Ref StagingDistribution
     Export:
-      Name: !Sub "${EnvId}-DistributionId-Alias"
+      Name: !Sub "${EnvId}-StagingDistributionId"
 
-  DistributionDomainNameAlias:
-    Description: CloudFront distribution domain name for Alias.
+  DistributionDomainNameStaging:
+    Description: CloudFront distribution domain name for staging.
     Value: !GetAtt StagingDistribution.DomainName
     Export:
-      Name: !Sub "${EnvId}-DistributionDomainName-Alias"
+      Name: !Sub "${EnvId}-DistributionDomainName-Staging"
 
   ContinuousDeploymentPolicyId:
     Description: CloudFront Continuous Deployment Policy Id
