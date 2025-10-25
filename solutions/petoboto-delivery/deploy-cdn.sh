@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Distribution with CD (main/blue)
+# Delivery Distribution (blue)
 aws cloudformation deploy \
     --stack-name ${ENV_ID}-petoboto-delivery \
     --parameter-overrides \
@@ -10,7 +10,7 @@ aws cloudformation deploy \
         ResourcesBucketName=$BUCKET_NAME_MAIN \
     --template-file solutions/petoboto-delivery/template.cform.yaml
 
-# Staging Distribution (CD Alias, green)
+# Staging Distribution (green)
 aws cloudformation deploy \
     --stack-name ${ENV_ID}-petoboto-delivery-staging \
     --parameter-overrides \
@@ -22,12 +22,12 @@ aws cloudformation deploy \
 
 DISTRIBUTION_DOMAIN=$(aws cloudformation describe-stacks \
     --stack-name ${ENV_ID}-petoboto-delivery \
-    --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainNameCD'].OutputValue" \
+    --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" \
     --output text)
 echo "http://$DISTRIBUTION_DOMAIN/"
 DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
     --stack-name ${ENV_ID}-petoboto-delivery \
-    --query "Stacks[0].Outputs[?OutputKey=='DistributionIdCD'].OutputValue" \
+    --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue" \
     --output text)
 
 aws cloudformation deploy \

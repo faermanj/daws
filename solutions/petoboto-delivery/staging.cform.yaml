@@ -45,7 +45,7 @@ Resources:
             - HasPolicyId
             - !Ref DistributionContinuousDeploymentPolicyId
             - !Ref "AWS::NoValue" 
-        Comment: !Sub "CloudFront distribution for ${EnvId} CD Alias (Continuous Deployment Target)"
+        Comment: !Sub "CloudFront distribution for ${EnvId} Alias (Continuous Deployment Target)"
         Enabled: true
         DefaultRootObject: index.html
         Logging:
@@ -71,7 +71,7 @@ Resources:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-${EnvColor}-ResourcesBucketName"
             OriginAccessControlId: 
-              Fn::ImportValue: !Sub "${EnvId}-OriginAccessControlCDId"
+              Fn::ImportValue: !Sub "${EnvId}-OriginAccessControlId"
             S3OriginConfig: {}
 
           - Id: APIOrigin
@@ -161,17 +161,17 @@ Resources:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${StagingDistribution}"
 
 Outputs:
-  DistributionIdCDAlias:
-    Description: CloudFront distribution identifier for CD Alias.
+  DistributionIdAlias:
+    Description: CloudFront distribution identifier for Alias.
     Value: !Ref StagingDistribution
     Export:
-      Name: !Sub "${EnvId}-DistributionId-CD-Alias"
+      Name: !Sub "${EnvId}-DistributionId-Alias"
 
-  DistributionDomainNameCDAlias:
-    Description: CloudFront distribution domain name for CD Alias.
+  DistributionDomainNameAlias:
+    Description: CloudFront distribution domain name for Alias.
     Value: !GetAtt StagingDistribution.DomainName
     Export:
-      Name: !Sub "${EnvId}-DistributionDomainName-CD-Alias"
+      Name: !Sub "${EnvId}-DistributionDomainName-Alias"
 
   ContinuousDeploymentPolicyId:
     Description: CloudFront Continuous Deployment Policy Id

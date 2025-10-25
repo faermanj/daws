@@ -47,7 +47,7 @@ Conditions:
   HasPolicyId: !Not [!Equals [!Ref ContinuousDeploymentPolicyId, ""]]
     
 Resources:
-  LogsBucketCD:
+  LogsBucket:
     Type: AWS::S3::Bucket
     Properties:
       OwnershipControls:
@@ -59,18 +59,18 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
-  OriginAccessControlCD:
+  OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
         Name: !Sub "${EnvId}-oac"
-        Description: !Sub "OAC for CloudFront distribution ${EnvId} CD"
+        Description: !Sub "OAC for CloudFront distribution ${EnvId}"
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
 
 
-  DistributionCD:
+  Distribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
@@ -80,11 +80,11 @@ Resources:
             - HasPolicyId
             - !Ref ContinuousDeploymentPolicyId
             - !Ref "AWS::NoValue"
-        Comment: !Sub "CloudFront distribution for ${EnvId} CD"
+        Comment: !Sub "CloudFront distribution for ${EnvId}"
         Enabled: true
         DefaultRootObject: index.html
         Logging:
-          Bucket: !Sub "${LogsBucketCD}.s3.amazonaws.com"
+          Bucket: !Sub "${LogsBucket}.s3.amazonaws.com"
           Prefix: !Sub "cloudfront/${EnvId}/"
           IncludeCookies: !Ref LogCookies
         Aliases:
@@ -103,7 +103,7 @@ Resources:
                 - BucketName:
                     Fn::ImportValue:
                       Fn::Sub: "${EnvId}-${EnvColor}-ResourcesBucketName"
-            OriginAccessControlId: !Ref OriginAccessControlCD
+            OriginAccessControlId: !Ref OriginAccessControl
             S3OriginConfig: {}
 
           - Id: APIOrigin
@@ -179,12 +179,12 @@ Resources:
                       Fn::Sub: "${EnvId}-${EnvColor}-ResourcesBucketName"
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionCD}"
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
 
-  LogsBucketPolicyCD:
+  LogsBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref LogsBucketCD
+      Bucket: !Ref LogsBucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -195,7 +195,7 @@ Resources:
             Action:
               - s3:PutObject
             Resource:
-              Fn::Sub: "arn:aws:s3:::${LogsBucketCD}/cloudfront/${EnvId}/*"
+              Fn::Sub: "arn:aws:s3:::${LogsBucket}/cloudfront/${EnvId}/*"
             Condition:
               StringEquals:
                 s3:x-amz-acl: bucket-owner-full-control
@@ -204,27 +204,27 @@ Resources:
                 aws:SourceArn: !Sub "arn:aws:logs:us-east-1:${AWS::AccountId}:delivery-source/*"
 
 Outputs:
-  DistributionIdCD:
-    Description: CloudFront distribution identifier for CD.
-    Value: !Ref DistributionCD
+  DistributionId:
+    Description: CloudFront distribution identifier for.
+    Value: !Ref Distribution
     Export:
       Name: !Sub "${EnvId}-DistributionId"
       
-  DistributionDomainNameCD:
-    Description: CloudFront distribution domain name for CD.
-    Value: !GetAtt DistributionCD.DomainName
+  DistributionDomainName:
+    Description: CloudFront distribution domain name.
+    Value: !GetAtt Distribution.DomainName
     Export:
       Name: !Sub "${EnvId}-DistributionDomainName"
   
-  LogsBucketNameCD:
-    Description: S3 bucket name for CloudFront logs for CD.
-    Value: !Ref LogsBucketCD
+  LogsBucketName:
+    Description: S3 bucket name for CloudFront logs.
+    Value: !Ref LogsBucket
     Export:
       Name: !Sub "${EnvId}-LogsBucketName"
   
-  OriginAccessControlCDId:
-    Description: Origin Access Control ID for CloudFront distribution CD.
-    Value: !Ref OriginAccessControlCD
+  OriginAccessControlId:
+    Description: Origin Access Control ID for CloudFront distribution.
+    Value: !Ref OriginAccessControl
     Export:
-      Name: !Sub "${EnvId}-OriginAccessControlCDId"
+      Name: !Sub "${EnvId}-OriginAccessControlId"
 
