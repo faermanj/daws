@@ -8,7 +8,7 @@ HOST=${ENV_ID}.${DOMAIN_NAME}
 COUNT=0
 GREEN=0
 GREEN_RATIO=0
-## while true check head of styles css for color applied
+
 while true; do
   URL="https://$HOST/css/styles.css"
   HEAD=$(curl -s $URL | grep "ENV_COLOR")

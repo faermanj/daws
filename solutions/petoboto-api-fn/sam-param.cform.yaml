@@ -1,0 +1,77 @@
+# aws ssm put-parameter --name "delivery-UNSPLASH_ACCESS_KEY" --type "String" --value "$UNSPLASH_ACCESS_KEY"
+# aws ssm get-parameter --name "delivery-UNSPLASH_ACCESS_KEY" --query "Parameter.Value" --output text
+# mvn clean install && sam deploy --stack-name petoboto-api-param-fn --template-file sam-param.cform.yaml --capabilities CAPABILITY_IAM --resolve-s3
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Petoboto API Function
+
+Globals:
+  Api:
+    EndpointConfiguration: REGIONAL
+    BinaryMediaTypes:
+      - "*/*"
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: delivery
+    Description: Environment identifier used for cross-stack imports.
+
+Resources:
+  ApiFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
+      Runtime: java21
+      CodeUri: target/function.zip
+      MemorySize: 512
+      Policies: AWSLambdaBasicExecutionRole
+      Timeout: 60
+#      VpcConfig:
+#        SecurityGroupIds:
+#          - Fn::ImportValue: !Sub "${EnvId}-DBClientsSecurityGroupId"
+#        SubnetIds:
+#          - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet1Id"
+#          - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet2Id"
+#          - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet3Id"
+      Environment:
+        Variables:
+          QUARKUS_DATASOURCE_JDBC_URL:
+            Fn::ImportValue: !Sub "${EnvId}-JDBCUrl"
+          QUARKUS_DATASOURCE_USERNAME:
+            Fn::ImportValue: !Sub "${EnvId}-DBUsername"
+          QUARKUS_DATASOURCE_PASSWORD:
+            Fn::ImportValue: !Sub "${EnvId}-DBPassword"
+          UNSPLASH_ACCESS_KEY: !Sub "{{resolve:ssm:${EnvId}-UNSPLASH_ACCESS_KEY}}"
+      Events:
+        HttpApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  PetobotoApiId:
+    Description: Default execute-api ID
+    Value: !Ref ServerlessHttpApi
+    Export:
+      Name: !Sub "${EnvId}-ApiId"
+
+  PetobotoApiDnsName:
+    Description: Default execute-api DNS Hostname
+    Value: !Sub "${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+    Export:
+      Name: !Sub "${EnvId}-ApiDnsName"
+
+  PetobotoApiUrl:
+    Description: Default execute-api URL
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
+    Export:
+      Name: !Sub "${EnvId}-ApiUrl"
+    
+  PetobotoApiStageName:
+    Description: API stage name
+    Value: "$default"
+    Export:
+      Name: !Sub "${EnvId}-ApiStageName"
+
