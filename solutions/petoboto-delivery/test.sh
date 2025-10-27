@@ -4,7 +4,8 @@ pushd $DIR/../..
 export AWS_PAGER=""
 ENV_ID=${ENV_ID:-"delivery"}
 DOMAIN_NAME=${DOMAIN_NAME:-"petoboto.com"}
-HOST=${ENV_ID}.${DOMAIN_NAME}
+DEFAULT_HOST=${ENV_ID}.${DOMAIN_NAME}
+HOST=${HOST:-$DEFAULT_HOST}
 COUNT=0
 GREEN=0
 GREEN_RATIO=0
@@ -18,6 +19,6 @@ while true; do
   if [ -n "$IS_GREEN" ]; then
     GREEN=$((GREEN + 1))
   fi
-  echo "$(date +%H:%M:%S) [$COUNT/$GREEN/$GREEN_RATIO]: $HEAD"
+  echo "$(date +%H:%M:%S) [$URL] [$COUNT/$GREEN/$GREEN_RATIO]: $HEAD"
   sleep 0.333
 done

@@ -28,7 +28,7 @@ Resources:
     Type: AWS::ApiGatewayV2::ApiMapping
     Properties:
       ApiId:
-        Fn::ImportValue: !Sub "${EnvId}-PetobotoApiId"
+        Fn::ImportValue: !Sub "${EnvId}-ApiId"
       DomainName: !Ref ApiDomain
       Stage: "$default"
     DependsOn: ApiDomain

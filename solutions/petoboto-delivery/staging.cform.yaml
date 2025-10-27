@@ -77,7 +77,7 @@ Resources:
           - Id: APIOrigin
             DomainName:
               Fn::ImportValue:
-                Fn::Sub: "${EnvId}-PetobotoApiDnsName"
+                Fn::Sub: "${EnvId}-ApiDnsName"
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443

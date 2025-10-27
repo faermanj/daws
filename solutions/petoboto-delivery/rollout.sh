@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 ENV_ID=${ENV_ID:-"delivery"}
-STAGING_WEIGHT=${STAGING_WEIGHT:-"0.10"}
+STAGING_WEIGHT=${STAGING_WEIGHT:-"0.13"}
 
 echo "Updating staging distribution with weight $STAGING_WEIGHT"
 aws cloudformation deploy \
