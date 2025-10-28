@@ -14,38 +14,38 @@ Parameters:
   PublicSubnet1Cidr:
     Type: String
     Default: 10.0.1.0/24
-  
+
   PublicSubnet2Cidr:
     Type: String
-    Default: 10.0.3.0/24
-  
+    Default: 10.0.4.0/24
+
   PublicSubnet3Cidr:
     Type: String
-    Default: 10.0.5.0/24
-  
+    Default: 10.0.7.0/24
+
   IsolatedSubnet1Cidr:
     Type: String
     Default: 10.0.2.0/24
-  
+
   IsolatedSubnet2Cidr:
     Type: String
-    Default: 10.0.4.0/24
-  
+    Default: 10.0.5.0/24
+
   IsolatedSubnet3Cidr:
+    Type: String
+    Default: 10.0.8.0/24
+
+  NATSubnet1Cidr:
+    Type: String
+    Default: 10.0.3.0/24
+
+  NATSubnet2Cidr:
     Type: String
     Default: 10.0.6.0/24
 
-    NATSubnet1Cidr:
-      Type: String
-      Default: 10.0.7.0/24
-
-    NATSubnet2Cidr:
-      Type: String
-      Default: 10.0.8.0/24
-
-    NATSubnet3Cidr:
-      Type: String
-      Default: 10.0.9.0/24
+  NATSubnet3Cidr:
+    Type: String
+    Default: 10.0.9.0/24
 
 Resources:
   VPC:
@@ -174,11 +174,13 @@ Resources:
     Properties:
       SubnetId: !Ref PublicSubnet1
       RouteTableId: !Ref PublicRouteTable
+
   AssocPublicSubnet2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PublicSubnet2
       RouteTableId: !Ref PublicRouteTable
+
   AssocPublicSubnet3:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -201,149 +203,149 @@ Resources:
       SubnetId: !Ref IsolatedSubnet3
       RouteTableId: !Ref IsolatedRouteTable
 
-    NATSubnet1:
-      Type: AWS::EC2::Subnet
-      Properties:
-        VpcId: !Ref VPC
-        CidrBlock: !Ref NATSubnet1Cidr
-        AvailabilityZone: !Select [0, !GetAZs ""]
-        MapPublicIpOnLaunch: false
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-nat-a
-          - Key: Tier
-            Value: nat
+  NATSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref NATSubnet1Cidr
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-nat-a
+        - Key: Tier
+          Value: nat
 
-    NATSubnet2:
-      Type: AWS::EC2::Subnet
-      Properties:
-        VpcId: !Ref VPC
-        CidrBlock: !Ref NATSubnet2Cidr
-        AvailabilityZone: !Select [1, !GetAZs ""]
-        MapPublicIpOnLaunch: false
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-nat-b
-          - Key: Tier
-            Value: nat
+  NATSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref NATSubnet2Cidr
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-nat-b
+        - Key: Tier
+          Value: nat
 
-    NATSubnet3:
-      Type: AWS::EC2::Subnet
-      Properties:
-        VpcId: !Ref VPC
-        CidrBlock: !Ref NATSubnet3Cidr
-        AvailabilityZone: !Select [2, !GetAZs ""]
-        MapPublicIpOnLaunch: false
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-nat-c
-          - Key: Tier
-            Value: nat
+  NATSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref NATSubnet3Cidr
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-nat-c
+        - Key: Tier
+          Value: nat
 
-    NatEIP1:
-      Type: AWS::EC2::EIP
-      Properties:
-        Domain: vpc
+  NatEIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
 
-    NatEIP2:
-      Type: AWS::EC2::EIP
-      Properties:
-        Domain: vpc
+  NatEIP2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
 
-    NatEIP3:
-      Type: AWS::EC2::EIP
-      Properties:
-        Domain: vpc
+  NatEIP3:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
 
-    NatGateway1:
-      Type: AWS::EC2::NatGateway
-      Properties:
-        AllocationId: !GetAtt NatEIP1.AllocationId
-        SubnetId: !Ref NATSubnet1
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-natgw-a
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEIP1.AllocationId
+      SubnetId: !Ref NATSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-natgw-a
 
-    NatGateway2:
-      Type: AWS::EC2::NatGateway
-      Properties:
-        AllocationId: !GetAtt NatEIP2.AllocationId
-        SubnetId: !Ref NATSubnet2
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-natgw-b
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEIP2.AllocationId
+      SubnetId: !Ref NATSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-natgw-b
 
-    NatGateway3:
-      Type: AWS::EC2::NatGateway
-      Properties:
-        AllocationId: !GetAtt NatEIP3.AllocationId
-        SubnetId: !Ref NATSubnet3
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-natgw-c
+  NatGateway3:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEIP3.AllocationId
+      SubnetId: !Ref NATSubnet3
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-natgw-c
 
-    NATRouteTable1:
-      Type: AWS::EC2::RouteTable
-      Properties:
-        VpcId: !Ref VPC
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-nat-rt-a
+  NATRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-nat-rt-a
 
-    NATRouteTable2:
-      Type: AWS::EC2::RouteTable
-      Properties:
-        VpcId: !Ref VPC
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-nat-rt-b
+  NATRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-nat-rt-b
 
-    NATRouteTable3:
-      Type: AWS::EC2::RouteTable
-      Properties:
-        VpcId: !Ref VPC
-        Tags:
-          - Key: Name
-            Value: !Sub ${EnvId}-nat-rt-c
+  NATRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-nat-rt-c
 
-    NATRoute1:
-      Type: AWS::EC2::Route
-      Properties:
-        RouteTableId: !Ref NATRouteTable1
-        DestinationCidrBlock: 0.0.0.0/0
-        NatGatewayId: !Ref NatGateway1
+  NATRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref NATRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
 
-    NATRoute2:
-      Type: AWS::EC2::Route
-      Properties:
-        RouteTableId: !Ref NATRouteTable2
-        DestinationCidrBlock: 0.0.0.0/0
-        NatGatewayId: !Ref NatGateway2
+  NATRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref NATRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
 
-    NATRoute3:
-      Type: AWS::EC2::Route
-      Properties:
-        RouteTableId: !Ref NATRouteTable3
-        DestinationCidrBlock: 0.0.0.0/0
-        NatGatewayId: !Ref NatGateway3
+  NATRoute3:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref NATRouteTable3
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway3
 
-    AssocNATSubnet1:
-      Type: AWS::EC2::SubnetRouteTableAssociation
-      Properties:
-        SubnetId: !Ref NATSubnet1
-        RouteTableId: !Ref NATRouteTable1
+  AssocNATSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref NATSubnet1
+      RouteTableId: !Ref NATRouteTable1
 
-    AssocNATSubnet2:
-      Type: AWS::EC2::SubnetRouteTableAssociation
-      Properties:
-        SubnetId: !Ref NATSubnet2
-        RouteTableId: !Ref NATRouteTable2
+  AssocNATSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref NATSubnet2
+      RouteTableId: !Ref NATRouteTable2
 
-    AssocNATSubnet3:
-      Type: AWS::EC2::SubnetRouteTableAssociation
-      Properties:
-        SubnetId: !Ref NATSubnet3
-        RouteTableId: !Ref NATRouteTable3
+  AssocNATSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref NATSubnet3
+      RouteTableId: !Ref NATRouteTable3
 
 Outputs:
   VpcId:
@@ -351,8 +353,7 @@ Outputs:
     Export:
       Name: !Sub ${EnvId}-VpcId
   NATSubnetIds:
-    Value:
-      !Join [",", [!Ref NATSubnet1, !Ref NATSubnet2, !Ref NATSubnet3]]
+    Value: !Join [",", [!Ref NATSubnet1, !Ref NATSubnet2, !Ref NATSubnet3]]
     Export:
       Name: !Sub ${EnvId}-NATSubnetIds
 
@@ -360,10 +361,12 @@ Outputs:
     Value: !Ref NATSubnet1
     Export:
       Name: !Sub ${EnvId}-NATSubnet1Id
+
   NATSubnet2Id:
     Value: !Ref NATSubnet2
     Export:
       Name: !Sub ${EnvId}-NATSubnet2Id
+
   NATSubnet3Id:
     Value: !Ref NATSubnet3
     Export:

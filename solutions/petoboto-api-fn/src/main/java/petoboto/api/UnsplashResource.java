@@ -1,18 +1,14 @@
 package petoboto.api;
 
+import java.net.HttpURLConnection;
+import java.net.URI;
+
+import jakarta.json.Json;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 import jakarta.ws.rs.core.Response;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.util.Scanner;
 
 @Path("/unsplash")
 public class UnsplashResource {
@@ -33,8 +29,8 @@ public class UnsplashResource {
             var url = URI.create(apiUrl).toURL();
             var conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setConnectTimeout(30000); // 30 seconds
-            conn.setReadTimeout(30000);    // 30 seconds
+            conn.setConnectTimeout(60000);
+            conn.setReadTimeout(60000);
             conn.connect();
 
             var responseCode = conn.getResponseCode();
@@ -50,6 +46,7 @@ public class UnsplashResource {
             var results = json.getJsonArray("results");
             return Response.ok(buildHtml(results)).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}")
                     .build();
