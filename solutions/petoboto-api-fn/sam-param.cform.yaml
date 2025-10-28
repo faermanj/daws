@@ -18,6 +18,19 @@ Parameters:
     Description: Environment identifier used for cross-stack imports.
 
 Resources:
+  ApiSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for Petoboto API Function
+      VpcId: 
+        Fn::ImportValue: !Sub "${EnvId}-VPCId"
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
   ApiFn:
     Type: AWS::Serverless::Function
     Properties:
@@ -25,11 +38,14 @@ Resources:
       Runtime: java21
       CodeUri: target/function.zip
       MemorySize: 1024
-      Policies: AWSLambdaBasicExecutionRole
-      Timeout: 60
+      Policies: 
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+      Timeout: 62
       VpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "${EnvId}-DBClientsSecurityGroupId"
+          - !Ref ApiSG
         SubnetIds:
           - Fn::ImportValue: !Sub "${EnvId}-NATSubnet1Id"
           - Fn::ImportValue: !Sub "${EnvId}-NATSubnet2Id"

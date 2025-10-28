@@ -261,7 +261,7 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatEIP1.AllocationId
-      SubnetId: !Ref NATSubnet1
+      SubnetId: !Ref PublicSubnet1
       Tags:
         - Key: Name
           Value: !Sub ${EnvId}-natgw-a
@@ -270,7 +270,7 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatEIP2.AllocationId
-      SubnetId: !Ref NATSubnet2
+      SubnetId: !Ref PublicSubnet2
       Tags:
         - Key: Name
           Value: !Sub ${EnvId}-natgw-b
@@ -279,7 +279,7 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatEIP3.AllocationId
-      SubnetId: !Ref NATSubnet3
+      SubnetId: !Ref PublicSubnet3
       Tags:
         - Key: Name
           Value: !Sub ${EnvId}-natgw-c
