@@ -1,0 +1,426 @@
+# aws cloudformation deploy --stack-name vpc-3nat --template-file cloudformation/vpc-3nats/template.cform.yaml
+# aws cloudformation delete --stack-name vpc-3nat
+Description: VPC with 3 public subnets and 3 isolated private subnets.
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnet1Cidr:
+    Type: String
+    Default: 10.0.1.0/24
+  
+  PublicSubnet2Cidr:
+    Type: String
+    Default: 10.0.3.0/24
+  
+  PublicSubnet3Cidr:
+    Type: String
+    Default: 10.0.5.0/24
+  
+  IsolatedSubnet1Cidr:
+    Type: String
+    Default: 10.0.2.0/24
+  
+  IsolatedSubnet2Cidr:
+    Type: String
+    Default: 10.0.4.0/24
+  
+  IsolatedSubnet3Cidr:
+    Type: String
+    Default: 10.0.6.0/24
+
+    NATSubnet1Cidr:
+      Type: String
+      Default: 10.0.7.0/24
+
+    NATSubnet2Cidr:
+      Type: String
+      Default: 10.0.8.0/24
+
+    NATSubnet3Cidr:
+      Type: String
+      Default: 10.0.9.0/24
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-igw
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-public-rt
+
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  IsolatedRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-isolated-rt
+        - Key: Isolation
+          Value: isolated
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet1Cidr
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-public-a
+        - Key: Tier
+          Value: public
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet2Cidr
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-public-b
+        - Key: Tier
+          Value: public
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet3Cidr
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-public-c
+        - Key: Tier
+          Value: public
+
+  IsolatedSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref IsolatedSubnet1Cidr
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-isolated-a
+
+  IsolatedSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref IsolatedSubnet2Cidr
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-isolated-b
+
+  IsolatedSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref IsolatedSubnet3Cidr
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvId}-isolated-c
+
+  AssocPublicSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+  AssocPublicSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+  AssocPublicSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicRouteTable
+
+  AssocIsolatedSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref IsolatedSubnet1
+      RouteTableId: !Ref IsolatedRouteTable
+  AssocIsolatedSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref IsolatedSubnet2
+      RouteTableId: !Ref IsolatedRouteTable
+  AssocIsolatedSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref IsolatedSubnet3
+      RouteTableId: !Ref IsolatedRouteTable
+
+    NATSubnet1:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref VPC
+        CidrBlock: !Ref NATSubnet1Cidr
+        AvailabilityZone: !Select [0, !GetAZs ""]
+        MapPublicIpOnLaunch: false
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-nat-a
+          - Key: Tier
+            Value: nat
+
+    NATSubnet2:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref VPC
+        CidrBlock: !Ref NATSubnet2Cidr
+        AvailabilityZone: !Select [1, !GetAZs ""]
+        MapPublicIpOnLaunch: false
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-nat-b
+          - Key: Tier
+            Value: nat
+
+    NATSubnet3:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref VPC
+        CidrBlock: !Ref NATSubnet3Cidr
+        AvailabilityZone: !Select [2, !GetAZs ""]
+        MapPublicIpOnLaunch: false
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-nat-c
+          - Key: Tier
+            Value: nat
+
+    NatEIP1:
+      Type: AWS::EC2::EIP
+      Properties:
+        Domain: vpc
+
+    NatEIP2:
+      Type: AWS::EC2::EIP
+      Properties:
+        Domain: vpc
+
+    NatEIP3:
+      Type: AWS::EC2::EIP
+      Properties:
+        Domain: vpc
+
+    NatGateway1:
+      Type: AWS::EC2::NatGateway
+      Properties:
+        AllocationId: !GetAtt NatEIP1.AllocationId
+        SubnetId: !Ref NATSubnet1
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-natgw-a
+
+    NatGateway2:
+      Type: AWS::EC2::NatGateway
+      Properties:
+        AllocationId: !GetAtt NatEIP2.AllocationId
+        SubnetId: !Ref NATSubnet2
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-natgw-b
+
+    NatGateway3:
+      Type: AWS::EC2::NatGateway
+      Properties:
+        AllocationId: !GetAtt NatEIP3.AllocationId
+        SubnetId: !Ref NATSubnet3
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-natgw-c
+
+    NATRouteTable1:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref VPC
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-nat-rt-a
+
+    NATRouteTable2:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref VPC
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-nat-rt-b
+
+    NATRouteTable3:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref VPC
+        Tags:
+          - Key: Name
+            Value: !Sub ${EnvId}-nat-rt-c
+
+    NATRoute1:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId: !Ref NATRouteTable1
+        DestinationCidrBlock: 0.0.0.0/0
+        NatGatewayId: !Ref NatGateway1
+
+    NATRoute2:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId: !Ref NATRouteTable2
+        DestinationCidrBlock: 0.0.0.0/0
+        NatGatewayId: !Ref NatGateway2
+
+    NATRoute3:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId: !Ref NATRouteTable3
+        DestinationCidrBlock: 0.0.0.0/0
+        NatGatewayId: !Ref NatGateway3
+
+    AssocNATSubnet1:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref NATSubnet1
+        RouteTableId: !Ref NATRouteTable1
+
+    AssocNATSubnet2:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref NATSubnet2
+        RouteTableId: !Ref NATRouteTable2
+
+    AssocNATSubnet3:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref NATSubnet3
+        RouteTableId: !Ref NATRouteTable3
+
+Outputs:
+  VpcId:
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${EnvId}-VpcId
+  NATSubnetIds:
+    Value:
+      !Join [",", [!Ref NATSubnet1, !Ref NATSubnet2, !Ref NATSubnet3]]
+    Export:
+      Name: !Sub ${EnvId}-NATSubnetIds
+
+  NATSubnet1Id:
+    Value: !Ref NATSubnet1
+    Export:
+      Name: !Sub ${EnvId}-NATSubnet1Id
+  NATSubnet2Id:
+    Value: !Ref NATSubnet2
+    Export:
+      Name: !Sub ${EnvId}-NATSubnet2Id
+  NATSubnet3Id:
+    Value: !Ref NATSubnet3
+    Export:
+      Name: !Sub ${EnvId}-NATSubnet3Id
+
+  InternetGatewayId:
+    Value: !Ref InternetGateway
+    Export:
+      Name: !Sub ${EnvId}-InternetGatewayId
+
+  PublicRouteTableId:
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: !Sub ${EnvId}-PublicRouteTableId
+
+  IsolatedRouteTableId:
+    Value: !Ref IsolatedRouteTable
+    Export:
+      Name: !Sub ${EnvId}-IsolatedRouteTableId
+
+  PublicSubnetIds:
+    Value:
+      !Join [",", [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
+    Export:
+      Name: !Sub ${EnvId}-PublicSubnetIds
+
+  IsolatedSubnetIds:
+    Value:
+      !Join [
+        ",",
+        [!Ref IsolatedSubnet1, !Ref IsolatedSubnet2, !Ref IsolatedSubnet3],
+      ]
+    Export:
+      Name: !Sub ${EnvId}-IsolatedSubnetIds
+
+  PublicSubnet1Id:
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub ${EnvId}-PublicSubnet1Id
+  PublicSubnet2Id:
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: !Sub ${EnvId}-PublicSubnet2Id
+  PublicSubnet3Id:
+    Value: !Ref PublicSubnet3
+    Export:
+      Name: !Sub ${EnvId}-PublicSubnet3Id
+
+  IsolatedSubnet1Id:
+    Value: !Ref IsolatedSubnet1
+    Export:
+      Name: !Sub ${EnvId}-IsolatedSubnet1Id
+  IsolatedSubnet2Id:
+    Value: !Ref IsolatedSubnet2
+    Export:
+      Name: !Sub ${EnvId}-IsolatedSubnet2Id
+  IsolatedSubnet3Id:
+    Value: !Ref IsolatedSubnet3
+    Export:
+      Name: !Sub ${EnvId}-IsolatedSubnet3Id

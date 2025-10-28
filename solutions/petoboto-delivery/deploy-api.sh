@@ -4,7 +4,7 @@ pushd "$DIR/../petoboto-api-fn"
 mvn clean verify
 sam deploy \
     --stack-name ${ENV_ID}-petoboto-api-fn \
-    --template-file sam.cform.yaml \
+    --template-file sam-param.cform.yaml \
     --capabilities CAPABILITY_IAM \
     --resolve-s3 \
     --force-upload \

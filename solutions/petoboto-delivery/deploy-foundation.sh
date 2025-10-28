@@ -2,8 +2,8 @@
 
 # VPC, Lambda and API
 aws cloudformation deploy \
-    --stack-name ${ENV_ID}-vpc-3ha \
-    --template-file cloudformation/vpc-3ha/template.cform.yaml \
+    --stack-name ${ENV_ID}-vpc-3nat \
+    --template-file cloudformation/vpc-3nat/template.cform.yaml \
     --parameter-overrides EnvId=$ENV_ID
 aws cloudformation deploy \
     --stack-name ${ENV_ID}-rds-mysql-sls \

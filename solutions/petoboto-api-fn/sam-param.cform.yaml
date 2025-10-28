@@ -27,13 +27,13 @@ Resources:
       MemorySize: 512
       Policies: AWSLambdaBasicExecutionRole
       Timeout: 60
-#      VpcConfig:
-#        SecurityGroupIds:
-#          - Fn::ImportValue: !Sub "${EnvId}-DBClientsSecurityGroupId"
-#        SubnetIds:
-#          - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet1Id"
-#          - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet2Id"
-#          - Fn::ImportValue: !Sub "${EnvId}-PublicSubnet3Id"
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "${EnvId}-DBClientsSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue: !Sub "${EnvId}-NATSubnet1Id"
+          - Fn::ImportValue: !Sub "${EnvId}-NATSubnet2Id"
+          - Fn::ImportValue: !Sub "${EnvId}-NATSubnet3Id"
       Environment:
         Variables:
           QUARKUS_DATASOURCE_JDBC_URL:
