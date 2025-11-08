@@ -1,11 +1,12 @@
 # BUCKET_NAME="moontracer-distribution"
-# DOMAIN_NAME=${DOMAIN_NAME:-"moontracer.faermanj.com"}
-# ZONE_ID=${ZONE_ID:-"Z044981111XDI2RGQ2GM9"}
-# CERTIFICATE_ARN=${CERTIFICATE_ARN:-"arn:aws:acm:us-east-1:730335617563:certificate/777043cb-290c-4e63-8a20-c970da31a8bf"}
+# DOMAIN_NAME="moontracer.faermanj.com"
+# ZONE_ID="Z044981111XDI2RGQ2GM9"
+# CERTIFICATE_ARN="arn:aws:acm:us-east-1:730335617563:certificate/777043cb-290c-4e63-8a20-c970da31a8bf"
 
 # aws cloudformation deploy --template-file cloudformation/static-distribution/template.cform.yaml --stack-name "moontracer-stack" --parameter-overrides BucketName=$BUCKET_NAME DomainName=$DOMAIN_NAME HostedZoneId=$ZONE_ID CertificateArn=$CERTIFICATE_ARN --capabilities CAPABILITY_IAM
 
 # aws s3 sync ./solutions/moontracer-workshop/distribution s3://$BUCKET_NAME --delete
+
 Description: "Static website distribution with S3 bucket, CloudFront distribution, and Origin Access Control"
 
 Parameters:
@@ -36,7 +37,7 @@ Conditions:
 
 Resources:
   # S3 Bucket for static files
-  StaticFilesBucket:
+  DistributionBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !If [HasBucketName, !Ref BucketName, !Ref "AWS::NoValue"]
@@ -83,7 +84,7 @@ Resources:
         Enabled: true
         Origins:
           - Id: S3Origin
-            DomainName: !GetAtt StaticFilesBucket.RegionalDomainName
+            DomainName: !GetAtt DistributionBucket.RegionalDomainName
             OriginAccessControlId: !Ref OriginAccessControl
             S3OriginConfig:
               OriginAccessIdentity: ""
@@ -96,7 +97,7 @@ Resources:
     Type: AWS::S3::BucketPolicy
     DependsOn: CloudFrontDistribution
     Properties:
-      Bucket: !Ref StaticFilesBucket
+      Bucket: !Ref DistributionBucket
       PolicyDocument:
         Statement:
           - Sid: AllowCloudFrontServicePrincipal
@@ -104,7 +105,10 @@ Resources:
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: !Sub "${StaticFilesBucket}/*"
+            Resource: !Sub "arn:aws:s3:::${DistributionBucket}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
 
   # Route53 Record for custom domain
   DNSRecord:
@@ -120,19 +124,19 @@ Resources:
 Outputs:
   BucketName:
     Description: Name of the S3 bucket
-    Value: !Ref StaticFilesBucket
+    Value: !Ref DistributionBucket
     Export:
       Name: !Sub "${AWS::StackName}-BucketName"
 
   BucketArn:
     Description: ARN of the S3 bucket
-    Value: !GetAtt StaticFilesBucket.Arn
+    Value: !GetAtt DistributionBucket.Arn
     Export:
       Name: !Sub "${AWS::StackName}-BucketArn"
 
   BucketDomainName:
     Description: Regional domain name of the S3 bucket
-    Value: !GetAtt StaticFilesBucket.RegionalDomainName
+    Value: !GetAtt DistributionBucket.RegionalDomainName
     Export:
       Name: !Sub "${AWS::StackName}-BucketDomainName"
 
