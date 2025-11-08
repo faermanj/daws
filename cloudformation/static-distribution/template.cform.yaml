@@ -1,0 +1,161 @@
+# BUCKET_NAME="moontracer-distribution"
+# DOMAIN_NAME=${DOMAIN_NAME:-"moontracer.faermanj.com"}
+# ZONE_ID=${ZONE_ID:-"Z044981111XDI2RGQ2GM9"}
+# CERTIFICATE_ARN=${CERTIFICATE_ARN:-"arn:aws:acm:us-east-1:730335617563:certificate/777043cb-290c-4e63-8a20-c970da31a8bf"}
+
+# aws cloudformation deploy --template-file cloudformation/static-distribution/template.cform.yaml --stack-name "moontracer-stack" --parameter-overrides BucketName=$BUCKET_NAME DomainName=$DOMAIN_NAME HostedZoneId=$ZONE_ID CertificateArn=$CERTIFICATE_ARN --capabilities CAPABILITY_IAM
+
+# aws s3 sync ./solutions/moontracer-workshop/distribution s3://$BUCKET_NAME --delete
+Description: "Static website distribution with S3 bucket, CloudFront distribution, and Origin Access Control"
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: ""
+    Description: Name of the S3 bucket to store static files (leave empty to auto-generate)
+    AllowedPattern: ^$|^[a-z0-9][a-z0-9-]*[a-z0-9]$
+    ConstraintDescription: Bucket name must be empty or contain only lowercase letters, numbers, and hyphens
+
+  DomainName:
+    Type: String
+    Description: Custom domain name for the CloudFront distribution (e.g., www.example.com)
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9]$
+
+  HostedZoneId:
+    Type: String
+    Description: Route53 Hosted Zone ID for the domain
+
+  CertificateArn:
+    Type: String
+    Description: ARN of the SSL certificate in ACM (must be in us-east-1 for CloudFront)
+    AllowedPattern: ^arn:aws:acm:us-east-1:[0-9]{12}:certificate\/[a-f0-9-]+$
+    ConstraintDescription: Must be a valid ACM certificate ARN in us-east-1 region
+
+Conditions:
+  HasBucketName: !Not [!Equals [!Ref BucketName, ""]]
+
+Resources:
+  # S3 Bucket for static files
+  StaticFilesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !If [HasBucketName, !Ref BucketName, !Ref "AWS::NoValue"]
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # Origin Access Control for CloudFront to access S3
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-OAC"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+        Description: !Sub "Origin Access Control for ${AWS::StackName}"
+
+  # CloudFront Distribution
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Ref DomainName
+        Comment: !Sub "Static distribution for ${DomainName}"
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: https-only
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        DefaultRootObject: index.html
+        Enabled: true
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt StaticFilesBucket.RegionalDomainName
+            OriginAccessControlId: !Ref OriginAccessControl
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: sni-only
+
+  # Bucket Policy to allow CloudFront access via OAC
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: CloudFrontDistribution
+    Properties:
+      Bucket: !Ref StaticFilesBucket
+      PolicyDocument:
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipal
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${StaticFilesBucket}/*"
+
+  # Route53 Record for custom domain
+  DNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+
+Outputs:
+  BucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref StaticFilesBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-BucketName"
+
+  BucketArn:
+    Description: ARN of the S3 bucket
+    Value: !GetAtt StaticFilesBucket.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-BucketArn"
+
+  BucketDomainName:
+    Description: Regional domain name of the S3 bucket
+    Value: !GetAtt StaticFilesBucket.RegionalDomainName
+    Export:
+      Name: !Sub "${AWS::StackName}-BucketDomainName"
+
+  DistributionId:
+    Description: CloudFront distribution ID
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub "${AWS::StackName}-DistributionId"
+
+  DistributionDomainName:
+    Description: CloudFront distribution domain name
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub "${AWS::StackName}-DistributionDomainName"
+
+  WebsiteURL:
+    Description: Website URL with custom domain
+    Value: !Sub "https://${DomainName}"
+    Export:
+      Name: !Sub "${AWS::StackName}-WebsiteURL"
+
+  OriginAccessControlId:
+    Description: Origin Access Control ID
+    Value: !Ref OriginAccessControl
+    Export:
+      Name: !Sub "${AWS::StackName}-OACId"
