@@ -7,15 +7,21 @@ We are very excited for your first day working in lunar energy technology. In th
 This workshop is designed to help AWS cusomers save on their cloud and "AI" costs.
 Training and using our own models and rule engines can be extremelly more efficient and sustainable than using third-party services.
 
+# Credits
+
+This workshop is part of a real project, delivered by [CDM consultores informaticos](https://www.cdm.guru/).
+Huge thanks to Daniel Peña, his team and all supporters of the [AWS Bilbao User Group](https://www.meetup.com/es-es/aws-bilbao/).
+
 # Disclaimers
 
 This workshop creates AWS resources that may incur in costs.
 Only run this workshop on accounts prepared for educational or personal purposes.
-This project is not sponsored or supported by Amazon or its affiliates. The text, code and opinions in this open-source respository are exclusive from its contributors.
+This project is not sponsored or supported by Amazon or its affiliates. 
+The text, code and opinions in this open-source respository are exclusive from its contributors.
 
 # Go!
 
-This workshop can be executed in a Amazon Sagemaker notebook instance, that you can launch with the link below:
+This workshop can be executed in a Amazon Sagemaker notebook instance, launch that on cloudformation with the link below:
 
 <a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/create/review?filter=active&templateURL=https%3A%2F%2Fmoontracer-distribution.s3.us-east-1.amazonaws.com%2Ftemplate.cform.yaml&stackName=moontracer-workshop"><img src="https://cdn.rawgit.com/buildkite/cloudformation-launch-stack-button-svg/master/launch-stack.svg" target="_blank"/></a>
 
