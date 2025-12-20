@@ -1,6 +1,3 @@
-# aws cloudformation create-stack --stack-name s3-simple-bucket --template-body file://template.cform.yaml
-# aws cloudformation deploy --stack-name s3-simple-bucket --template-file template.cform.yaml
-# aws cloudformation delete-stack --stack-name s3-simple-bucket
-Resources:
-  SimpleBucket:
-    Type: AWS::S3::Bucket
+template-file-path: cloudformation/s3-simple-bucket/params.cform.yaml
+parameters: {}
+tags: {}
